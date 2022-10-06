@@ -1,0 +1,12 @@
+{
+    "spellright.language": [
+        "en"
+    ],
+    "spellright.documentTypes": [
+        "markdown",
+        "latex",
+        "plaintext",
+        "python"
+    ],
+    "python.pythonPath": "C:\\Users\\mikey\\AppData\\Local\\Programs\\Python\\Python39\\python.exe"
+}
