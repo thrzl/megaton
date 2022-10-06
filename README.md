@@ -1,4 +1,5 @@
 # atomic
 
-atomic but with cogs
-i'm gonna merge into atomic
+a wip all-in-one discord bot
+
+more coming soon!
