@@ -3,7 +3,7 @@ import discord
 import asyncio
 import time
 from disnake.ext.commands.converter import RoleConverter, TextChannelConverter
-from bot import Atomic
+from bot import Atomic, Embed
 
 
 class Config(commands.Cog):
@@ -30,7 +30,7 @@ class Config(commands.Cog):
                 }
                 await self.db.insert_one(gconfig)
             g = await self.db.find_one(ginfo)
-            embed = disnake.Embed(title="Configuration Options")
+            embed = Embed(title="Configuration Options")
             if g["leveling"] == "Enabled":
                 emojistring = "<:yesx:780189815026352128><:yescheck:780189814967238656>"
             else:
@@ -82,9 +82,7 @@ class Config(commands.Cog):
                 olevel = gc["leveling"]
                 owelcome = gc["Welcoming"]
                 if str(payload.emoji) == "1️⃣":
-                    embed = disnake.Embed(
-                        title="leveling Enabled", color=discord.Color.green()
-                    )
+                    embed = Embed(title="leveling Enabled", color=discord.Color.green())
                     if olevel == "Disabled":
                         await self.db.update_one(
                             {"_id": ctx.guild.id}, {"$set": {"leveling": "Enabled"}}
@@ -96,7 +94,7 @@ class Config(commands.Cog):
                         )
                         await ctx.send("Disabled Leveling in this guild!")
                 elif str(payload.emoji) == "2️⃣":
-                    embed = disnake.Embed(
+                    embed = Embed(
                         title="Welcome Setup",
                         description="Which channel would you like welcome/leave messages to go in?",
                         color=discord.Color.green(),
@@ -139,7 +137,7 @@ class Config(commands.Cog):
                     )
                     wcm = ctx.guild.get_channel(wcid)
                     await ctx.send(f"Set the welcome channel to {wcm.mention}!")
-                    embed = disnake.Embed(
+                    embed = Embed(
                         title="Welcome Channel",
                         description="This is now the guild welcome channel.",
                     )
@@ -148,7 +146,7 @@ class Config(commands.Cog):
                     await asyncio.sleep(5)
                     await msg2.delete()
                 elif str(payload.emoji) == "3️⃣":
-                    embed = disnake.Embed(
+                    embed = Embed(
                         title="Autorole Setup",
                         description="Which role would you like new members to recieve when they join?",
                         color=discord.Color.green(),

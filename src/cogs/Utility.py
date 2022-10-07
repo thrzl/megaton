@@ -1,6 +1,6 @@
 from disnake.ext import commands
 from disnake.ext.commands import slash_command
-import discord
+from disnake import Member, Color, Asset, PartialEmoji
 from datetime import date, timedelta, datetime
 import os
 import random
@@ -10,6 +10,8 @@ from aiohttp import *
 from colorthief import ColorThief
 import json
 import asyncio
+from disnake.ext.commands.slash_core import ApplicationCommandInteraction
+from bot import Embed
 
 
 async def get_color(img):
@@ -28,16 +30,15 @@ class Utility(commands.Cog):
         usage="translate <text>",
         aliases=["tr"],
     )
-    async def translate(self, ctx, *, message):
-        await ctx.channel.trigger_typing()
+    async def translate(self, ctx: ApplicationCommandInteraction, *, message):
+        await ctx.response.defer()
         async with aiohttp.ClientSession() as session:
             response = await session.get(f"https://bruhapi.xyz/translate/{message}")
-            response = await response.text()
-            rej = json.loads(response)
+            rej = await response.json()
             text = rej["text"]
             lang = rej["lang"]
-            embed = disnake.Embed(title=f":flag_{lang}: Translation:", description=text)
-            embed.set_author(name=ctx.author.name, icon_url=ctx.author.avatar_url)
+            embed = Embed(title=f":flag_{lang}: Translation:", description=text)
+            embed.set_author(name=ctx.author.name, icon_url=ctx.author.avatar.url)
             await ctx.send(embed=embed)
 
     @slash_command(
@@ -46,53 +47,29 @@ class Utility(commands.Cog):
         aliases=["guild"],
         usage="invite",
     )
-    async def server(self, ctx):
-        await ctx.channel.trigger_typing()
-        url = ctx.guild.icon_url_as(format="png")
+    async def server(self, ctx: ApplicationCommandInteraction):
+        await ctx.response.defer()
+        url = ctx.guild.icon
         await url.save(f"{ctx.guild.id}av.png", seek_begin=True)
-        clr = await get_color(f"{ctx.guild.id}av.png")
+        clr = ", ".join(await get_color(f"{ctx.guild.id}av.png"))
         os.remove(f"{ctx.guild.id}av.png")
-        clr = str(clr).replace("(", "")
-        clr = str(clr).replace(")", "")
-        clr = clr.split(", ")
-        red = int(clr[0])
-        blue = int(clr[2])
-        green = int(clr[1])
-        color = discord.Color.from_rgb(red, green, blue)
-        name = str(ctx.guild.name)
-        owner = str(ctx.guild.owner_id)
-        owner = ctx.guild.owner
-        id = str(ctx.guild.id)
-        region = str(ctx.guild.region)
-        memberCount = str(ctx.guild.member_count)
-        icon = str(ctx.guild.icon_url)
-        tcount = 0
-        vcount = 0
-        rcount = 0
-        rpos = []
-        for i in ctx.guild.text_channels:
-            tcount += 1
-        for i in ctx.guild.voice_channels:
-            vcount += 1
-        for i in ctx.guild.roles:
-            rcount += 1
-            rpos.append(i.position)
-        toprolepos = max(rpos)
-        for i in ctx.guild.roles:
-            if i.position == toprolepos:
-                role = i
-        embed = disnake.Embed(title=name + " Server Information", color=color)
-        embed.set_thumbnail(url=icon)
-        embed.add_field(name="Owner", value=owner, inline=True)
+        red, blue, green = [int(c) for c in clr]
+        color = Color.from_rgb(red, green, blue)
+        tcount = len(ctx.guild.text_channels)
+        vcount = len(ctx.guild.voice_channels)
+        rcount = len(ctx.guild.roles)
+        embed = Embed(title=ctx.guild.name + " Server Information", color=color)
+        embed.set_thumbnail(url=ctx.guild.icon)
+        embed.add_field(name="Owner", value=ctx.guild.owner, inline=True)
         embed.add_field(name="Server ID", value=id, inline=True)
         embed.add_field(
             name="Region <a:greyscaleearth:777565668442374245>",
-            value=region,
+            value=ctx.guild.region,
             inline=True,
         )
         embed.add_field(
             name="Member Count",
-            value=f"<:member:779742587425652757> {memberCount}",
+            value=f"<:member:779742587425652757> {ctx.guild.member_count}",
             inline=True,
         )
         embed.add_field(
@@ -100,10 +77,10 @@ class Utility(commands.Cog):
             value=f"<:channel:779742587497742376> {tcount} | <:voicechannel:779742587011465238> {vcount}",
         )
         embed.add_field(name="Role Count 🎨", value=f"{rcount}")
-        embed.add_field(name="Top Role ✨🎨", value=i.mention)
+        embed.add_field(name="Top Role ✨🎨", value=ctx.guild.roles.reverse()[0])
         embed.add_field(name="Creation Date 📅", value=ctx.guild.created_at)
         embed.set_footer(
-            icon_url=ctx.author.avatar_url, text=f"Requested by {ctx.author.name}"
+            icon_url=ctx.author.avatar.url, text=f"Requested by {ctx.author.name}"
         )
         await ctx.send(embed=embed)
 
@@ -113,13 +90,13 @@ class Utility(commands.Cog):
         aliases=["suggestion", "bugreport", "bug"],
         usage="suggest <suggestion>",
     )
-    async def suggest(self, ctx, *, suggestion="0"):
+    async def suggest(self, ctx: ApplicationCommandInteraction, *, suggestion="0"):
         if suggestion == "0":
-            embed = disnake.Embed(
+            embed = Embed(
                 title="Suggestion", description="What do you want to suggest?"
             )
             embed.set_footer(
-                text=f"Requested by {ctx.author.name}", icon_url=ctx.author.avatar_url
+                text=f"Requested by {ctx.author.name}", icon_url=ctx.author.avatar.url
             )
             sug = await ctx.send(embed=embed)
 
@@ -130,10 +107,8 @@ class Utility(commands.Cog):
             await sug.add_reaction("📨")
         else:
             await ctx.message.add_reaction("📨")
-        embed = disnake.Embed(
-            title="New Suggestion", description=suggestion, color=discord.Color.green()
-        )
-        embed.set_author(name=ctx.author, icon_url=ctx.author.avatar_url)
+        embed = Embed(title="New Suggestion", description=suggestion)
+        embed.set_author(name=ctx.author, icon_url=ctx.author.avatar.url)
         suggestchannel = await self.bot.fetch_channel(779112252833792081)
         await suggestchannel.send(embed=embed)
 
@@ -144,9 +119,11 @@ class Utility(commands.Cog):
         aliases=["gws"],
     )
     @commands.has_guild_permissions(administrator=True)
-    async def gstart(self, ctx, time="none", *, prize="none"):
+    async def gstart(
+        self, ctx: ApplicationCommandInteraction, time="none", *, prize="none"
+    ):
         if time == "none":
-            embed = disnake.Embed(
+            embed = Embed(
                 title="Giveaway Setup 🎉",
                 description="How long should the giveaway last?",
                 color=ctx.author.color,
@@ -165,7 +142,7 @@ class Utility(commands.Cog):
                 time = m.content
 
                 await m.delete()
-                embed = disnake.Embed(
+                embed = Embed(
                     title="Giveaway Setup 🎉", description="What's the giveaway prize?"
                 )
                 await msg.edit(embed=embed)
@@ -183,7 +160,7 @@ class Utility(commands.Cog):
                     await m2.delete()
                     await msg.delete()
         elif time != "none" and prize == "none":
-            embed = disnake.Embed(
+            embed = Embed(
                 title="Giveaway Setup 🎉",
                 description="What's the giveaway prize?",
                 color=ctx.author.color,
@@ -206,9 +183,7 @@ class Utility(commands.Cog):
                 await m.delete()
                 await msg.delete()
         seconds = 0
-        embed1 = disnake.Embed(
-            title="🎉New **Giveaway!**", description=prize, color=ctx.author.color
-        )
+        embed1 = Embed(title="🎉New **Giveaway!**", description=prize)
         if time.lower().endswith("d"):
             seconds += int(time[:-1]) * 60 * 60 * 24
             counter = f"{int(time) // 60 // 60 // 24} days"
@@ -226,12 +201,12 @@ class Utility(commands.Cog):
             counter = f"{time} seconds"
             end = datetime.now() + timedelta(seconds=seconds)
         if seconds == 0:
-            embed = disnake.Embed(
+            embed = Embed(
                 title="Warning",
                 description="Please specify a proper duration. Example: `10d`, `5m`, etc.",
             )
         elif seconds > 7776000:
-            embed = disnake.Embed(
+            embed = Embed(
                 title="Warning",
                 description="You have specified a too long duration!\nMaximum duration is 90 days.",
             )
@@ -251,15 +226,15 @@ class Utility(commands.Cog):
             today = date.today()
             todaystr = today.strftime("%B %d, %Y")
             winner = random.choice(users)
-            embed2 = disnake.Embed(
+            embed2 = Embed(
                 title=f"The giveaway for **{prize}** has ended.",
                 description=f"Ended on {todaystr}",
                 color=ctx.author.color,
             )
             embed2.set_footer(
-                icon_url=winner.avatar_url, text=f"{winner.name} won this giveaway."
+                icon_url=winner.avatar.url, text=f"{winner.name} won this giveaway."
             )
-            embed = disnake.Embed(
+            embed = Embed(
                 title="**Giveaway Winner!**",
                 description=f"{winner.mention}, you just won **{prize}** in **{ctx.guild.name}**!",
                 color=winner.color,
@@ -271,7 +246,7 @@ class Utility(commands.Cog):
     @slash_command(
         name="raw", description="Prints raw text in a codeblock.", usage="raw <text>"
     )
-    async def raw(self, ctx, *, msg):
+    async def raw(self, ctx: ApplicationCommandInteraction, *, msg):
         await ctx.send(f"```{msg}```")
 
     @slash_command(
@@ -280,7 +255,7 @@ class Utility(commands.Cog):
         usage="pokemon <pokemon>",
         aliases=["pk", "pdx", "pd", "pokemon"],
     )
-    async def pokemon(self, ctx, *, pokemon):
+    async def pokemon(self, ctx: ApplicationCommandInteraction, *, pokemon):
         async with aiohttp.ClientSession() as session:
             response = await session.get(
                 f"https://some-random-api.ml/pokedex?pokemon={pokemon}"
@@ -334,8 +309,8 @@ class Utility(commands.Cog):
                 try:
                     f = await aiofiles.open(f"{pokemon}av.png", mode="wb")
                     idx = await session.get(url)
-                    idx = await idx.read()
-                    await f.write(idx)
+                    data = await idx.read()
+                    await f.write(data)
                     await f.close()
                     # await url.save(f'{pokemon}av.png',seek_begin = True)
                     clr = await get_color(f"{pokemon}av.png")
@@ -346,10 +321,10 @@ class Utility(commands.Cog):
                     red = int(clr[0])
                     blue = int(clr[2])
                     green = int(clr[1])
-                    color = discord.Color.from_rgb(red, green, blue)
-                    embed = disnake.Embed(title=name, description=desc, color=color)
+                    color = Color.from_rgb(red, green, blue)
+                    embed = Embed(title=name, description=desc, color=color)
                 except:
-                    embed = disnake.Embed(title=name, description=desc)
+                    embed = Embed(title=name, description=desc)
                 embed.set_image(url=img)
                 embed.add_field(
                     name="Information",
@@ -368,7 +343,7 @@ class Utility(commands.Cog):
     async def on_message(self, message):
         for u in message.mentions:
             if (u.display_name[:5]) == "[AFK]":
-                embed = disnake.Embed(
+                embed = Embed(
                     title="AFK Alert", description=f"{u.display_name} is AFK."
                 )
                 await message.channel.send(embed=embed)
@@ -377,7 +352,7 @@ class Utility(commands.Cog):
     async def afk(self, ctx):
         oldn = ctx.author.display_name
         await ctx.author.edit(reason="AFK", nick=f"[AFK] {oldn}")
-        embed = disnake.Embed(
+        embed = Embed(
             title="AFK",
             description="You have been marked as AFK. Any user who tries to mention you will get a notice saying that you are away.",
         )
@@ -396,9 +371,9 @@ class Utility(commands.Cog):
         case_insensitive=True,
         aliases=["remindme", "remind_me"],
     )
-    async def reminder(self, ctx, time, *, reminder):
+    async def reminder(self, ctx: ApplicationCommandInteraction, time, *, reminder):
         user = ctx.message.author
-        embed = disnake.Embed(color=0x55A7F7, timestamp=datetime.utcnow())
+        embed = Embed(color=0x55A7F7, timestamp=datetime.utcnow())
         seconds = 0
         if reminder is None:
             embed.add_field(
@@ -448,10 +423,9 @@ class Utility(commands.Cog):
         for d in pdata:
             usercount = d["users"]
             cpu = d["cpuload"]
-        embed = disnake.Embed(
+        embed = Embed(
             title="atomic Stats",
             description="My official stats!",
-            color=discord.Color.green(),
         )
         embed.add_field(name="Server Count", value=len(self.bot.guilds))
         embed.add_field(name="User Count", value=f"{usercount}")
@@ -467,22 +441,21 @@ class Utility(commands.Cog):
         aliases=["profile", "ui"],
         usage="whois <mention>",
     )
-    async def whois(self, ctx, *, member: discord.Member = "none"):
-        if member == "none":
-            member = ctx.author
-        await ctx.channel.trigger_typing()
-        url = member.avatar_url_as(format="png")
-        await url.save(f"{member.id}av.png", seek_begin=True)
-        clr = await get_color(f"{member.id}av.png")
-        os.remove(f"{member.id}av.png")
+    async def whois(self, ctx: ApplicationCommandInteraction, *, member: Member = None):
+        m: Member = member or ctx.author
+        await ctx.response.defer()
+        url: Asset = m.avatar
+        await url.save(f"{m.id}av.png", seek_begin=True)
+        clr = await get_color(f"{m.id}av.png")
+        os.remove(f"{m.id}av.png")
         clr = str(clr).replace("(", "")
         clr = str(clr).replace(")", "")
         clr = clr.split(", ")
         red = int(clr[0])
         blue = int(clr[2])
         green = int(clr[1])
-        color = discord.Color.from_rgb(red, green, blue)
-        flags = member.public_flags
+        color = Color.from_rgb(red, green, blue)
+        flags = m.public_flags
         flagsstr = ""
         if flags.staff:
             flagsstr = flagsstr + " <:staff:787444950974988288>"
@@ -501,31 +474,20 @@ class Utility(commands.Cog):
         if flags.verified_bot_developer:
             flagsstr = flagsstr + " <:verifiedbotdev:787449074994380821>"
         if flagsstr != "":
-            embed = disnake.Embed(title=member.name, description=flagsstr, color=color)
+            embed = Embed(title=m.name, description=flagsstr, color=color)
         else:
-            embed = disnake.Embed(title=member.name, description=flagsstr, color=color)
-        embed.set_thumbnail(url=member.avatar_url)
-        embed.add_field(name="ID", value=member.id, inline=True)
-        embed.add_field(
-            name="Created on: ", value=member.created_at.date(), inline=True
-        )
-        embed.add_field(name="Joined on: ", value=member.joined_at.date(), inline=True)
-        embed.add_field(name="Highest Role", value=member.top_role.mention, inline=True)
-        roles = []
-        for r in member.roles:
-            if r.name == "@everyone":
-                pass
-            else:
-                roles.append(r.mention)
+            embed = Embed(title=m.name, description=flagsstr, color=color)
+        embed.set_thumbnail(url=m.avatar.url)
+        embed.add_field(name="ID", value=m.id, inline=True)
+        embed.add_field(name="Created on: ", value=m.created_at.date(), inline=True)
+        embed.add_field(name="Joined on: ", value=m.joined_at.date(), inline=True)
+        embed.add_field(name="Highest Role", value=m.top_role.mention, inline=True)
+        roles = [role.mention for role in m.roles if role.name != "@everyone"]
         roles.reverse()
-        roles = str(roles)
-        roles = roles.replace("[", "")
-        roles = roles.replace("]", "")
-        roles = roles.replace("'", "")
-        roles = roles.replace("@@everyone", "")
+        ", ".join(roles)
         embed.add_field(name="Roles", value=roles, inline=True)
         embed.set_footer(
-            icon_url=ctx.author.avatar_url, text=f"Requested by {ctx.author.name}"
+            icon_url=ctx.author.avatar.url, text=f"Requested by {ctx.author.name}"
         )
         await ctx.send(embed=embed)
 
@@ -535,23 +497,22 @@ class Utility(commands.Cog):
         usage="pip <package>",
         aliases=["pypi", "pypa"],
     )
-    async def pip(self, ctx, *, package):
+    async def pip(self, ctx: ApplicationCommandInteraction, *, package):
         datal = ["author", "description", "downloads", "home_page", "name", "summary"]
         async with aiohttp.ClientSession() as session:
             package = str(package).lower()
             package = package.replace(" ", "-")
             r = await session.get(f"https://pypi.org/pypi/{package}/json")
             if str(r.status) == "404":
-                embed = disnake.Embed(
+                embed = Embed(
                     title="Package not found...",
                     description="Make sure that you use full package names and that you are asking about a valid package!",
-                    color=discord.Color.red(),
+                    color=Color.red(),
                 )
                 await ctx.send(embed=embed)
             else:
-                r = await r.text()
-                r = json.loads(r)
-                pkginfo = r["info"]
+                data = await r.json()
+                pkginfo = data["info"]
                 author = pkginfo["author"]
                 downloads = pkginfo["downloads"]
                 lic = pkginfo["license"]
@@ -565,10 +526,9 @@ class Utility(commands.Cog):
                 req = req.replace("]", "")
                 req = req.replace('"', "`")
                 req = req.replace("'", "`")
-                embed = disnake.Embed(
+                embed = Embed(
                     title=name,
                     description=summary,
-                    color=discord.Color.green(),
                     url=url,
                 )
                 embed.set_thumbnail(
@@ -593,13 +553,14 @@ class Utility(commands.Cog):
         description="Steals an emoji from another server!",
         usage=f"emojisteal <emoji> <name>",
     )
-    async def emojisteal(self, ctx, emoji: discord.PartialEmoji, name):
-        await ctx.channel.trigger_typing()
-        img = await emoji.url.read()
+    async def emojisteal(
+        self, ctx: ApplicationCommandInteraction, emoji: PartialEmoji, name
+    ):
+        await ctx.response.defer()
+        img = await emoji.read()
         em = await ctx.guild.create_custom_emoji(name=name, image=img)
-        embed = disnake.Embed(
+        embed = Embed(
             title=f"Emoji <:{em.name}:{em.id}> [`:{em.name}:`] was added successfully!",
-            color=discord.Color.green(),
         )
         await ctx.send(embed=embed)
 

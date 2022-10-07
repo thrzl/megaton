@@ -2,19 +2,19 @@ from disnake.ext import commands
 import discord
 from random import randint, choice
 from pymongo import MongoClient
+from disnake.ext.commands.slash_core import ApplicationCommandInteraction
 
-from bot import Atomic
+from bot import Atomic, Embed
 
 
 class Economy(commands.Cog):
     def __init__(self, bot: Atomic):
         self.bot = bot
         self.db = self.bot.db["econ"]
-        print(type(self.db))
 
     @commands.command(name="rob", description="Rob a user!")
     @commands.cooldown(1, 120, commands.BucketType.user)
-    async def rob(self, ctx, *, member: discord.Member):
+    async def rob(self, ctx: ApplicationCommandInteraction, *, member: discord.Member):
         choice = randint(0, 1)
         user = await self.db.find_one({"_id": ctx.author.id})
         victim = await self.db.find_one({"_id": member.id})
@@ -97,7 +97,7 @@ class Economy(commands.Cog):
         usage="deposit <money>",
     )
     @commands.cooldown(1, 600, commands.BucketType.user)
-    async def dep(self, ctx, amt=0):
+    async def dep(self, ctx: ApplicationCommandInteraction, amt=0):
         if amt == 0:
             await ctx.response.send_message(
                 "You forgot to tell me how much money you wanted to deposit!"
@@ -131,7 +131,7 @@ class Economy(commands.Cog):
         aliases=["with"],
     )
     @commands.cooldown(1, 10, commands.BucketType.user)
-    async def withdraw(self, ctx, amt=0):
+    async def withdraw(self, ctx: ApplicationCommandInteraction, amt=0):
         if amt == 0:
             await ctx.response.send_message(
                 "You forgot to tell me how much money you wanted to deposit!"
@@ -203,7 +203,9 @@ class Economy(commands.Cog):
         usage="balance [user]",
         aliases=["bal", "money", "cash"],
     )
-    async def balance(self, ctx, member: discord.Member = None):
+    async def balance(
+        self, ctx: ApplicationCommandInteraction, member: discord.Member = None
+    ):
         member = member or ctx.author
         ginfo = {"_id": member.id}
         if await self.db.count_documents(ginfo) == 0:
@@ -212,7 +214,7 @@ class Economy(commands.Cog):
         user = await self.db.find_one({"_id": member.id})
         walletamt = user["wallet"]
         bankamt = user["bank"]
-        embed = disnake.Embed(title=f"{member.name}'s balance", color=ctx.author.color)
+        embed = Embed(title=f"{member.name}'s balance")
         embed.set_thumbnail(
             url=member.avatar.url if member.avatar else member.default_avatar.url
         )

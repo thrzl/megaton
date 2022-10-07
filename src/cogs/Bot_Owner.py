@@ -3,11 +3,9 @@ import discord
 import os
 
 # import dbl as dblpy
-import random
 import sys
-import subprocess
-import ksoftapi
-from time import sleep
+from typing import List
+from disnake.ext.commands.slash_core import ApplicationCommandInteraction
 
 from disnake.ext.commands import cog
 
@@ -25,8 +23,8 @@ class Bot_Owner(commands.Cog):
 
     @commands.command(name="toggle", usage="toggle <command>")
     @commands.is_owner()
-    async def toggle(self, ctx, command):
-        aliases = []
+    async def toggle(self, ctx: ApplicationCommandInteraction,command):
+        aliases: List[str] = []
         for i in self.bot.commands:
             if i.name.lower() == command.lower() or command.lower() in i.aliases:
                 if i.enabled:
@@ -56,7 +54,7 @@ class Bot_Owner(commands.Cog):
 
     @commands.command()
     @commands.is_owner()
-    async def status(self, ctx, type, *, status):
+    async def status(self, ctx: ApplicationCommandInteraction,type, *, status):
         if type.startswith("p"):
             await self.bot.change_presence(activity=discord.Game(name=status))
         if type.startswith("w"):
@@ -113,9 +111,9 @@ class Bot_Owner(commands.Cog):
         aliases=["reload"],
     )
     @commands.is_owner()
-    async def load(self, ctx, *extensions):
+    async def load(self, ctx: ApplicationCommandInteraction,*extensions):
         jsk = self.bot.get_cog("Jishaku")
-        await jsk.jsk_load(ctx, extensions)
+        await jsk.jsk_load(ctx)
 
     @commands.command(
         name="sudo",
@@ -123,9 +121,9 @@ class Bot_Owner(commands.Cog):
         usage="sudo <command>",
     )
     @commands.is_owner()
-    async def sudo(self, ctx, *, command):
+    async def sudo(self, ctx: ApplicationCommandInteraction,*, command):
         jsk = self.bot.get_cog("Jishaku")
-        await jsk.jsk_sudo(ctx, command_string=command)
+        await jsk.jsk_sudo(ctx,command_string=command)
 
     @commands.command(
         name="shutdown", description="Shuts down the bot", aliases=["die"]

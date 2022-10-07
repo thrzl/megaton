@@ -1,4 +1,5 @@
-from disnake import Intents, Member, Embed, Activity, ActivityType
+from disnake import Intents, Member, Embed as _Embed, Activity, ActivityType
+from disnake.types.embed import Embed as EmbedData
 from disnake.ext.commands.bot import Bot
 from disnake.ext.commands.bot import when_mentioned_or
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -21,10 +22,19 @@ class HeirarchyErrorType(Enum):
     SELF_NO_PERMISSION = 1
 
 
-class AEmbed(Embed):
-    def __init__(self, **kwargs):
-        super().__init__(color=0x2F3136, **kwargs)
+class Embed(_Embed):
+    def __init__(self, color=0x2F3136, preserve_case=False, **kwargs):
+        super().__init__(color=color, **kwargs)
+        self.preserve_case = preserve_case
         self.timestamp = datetime.utcnow()
+    
+    def to_dict(self) -> EmbedData:
+        if not self.preserve_case:
+            for i in self.fields:
+                print(self.fields)
+                if i.name: i.name = i.name.lower()
+                if i.value: i.value = i.value.lower()
+        return super().to_dict()
 
 
 class Atomic(Bot):
@@ -38,7 +48,7 @@ class Atomic(Bot):
         self.token = token
         db = AsyncIOMotorClient(environ["DATABASE_URL"])
         self.db = db["atomic"]
-        self.Embed = AEmbed
+        self.Embed = Embed
         self.loop.create_task(self.ch_pr())
         # dbl = dblpy.DBLClient(
         #     client,

@@ -18,6 +18,10 @@ dnspython = "^2.2.1"
 aiofiles = "^22.1.0"
 asyncdagpi = "^4.1.5"
 disnake = "^2.6.0"
+humanize = "^4.4.0"
+SQLAlchemy = "^1.4.41"
+asyncpg = "^0.26.0"
+"betterstatcord.py" = "^3.5.0"
 
 [tool.poetry.dev-dependencies]
 bandit = "^1.7.4"

@@ -60,14 +60,14 @@ class Level(commands.Cog):
 
     @commands.command(name="Level", description="Check your level in this guild.")
     @commands.guild_only()
-    async def xp(self, ctx, who: discord.Member = None):
+    async def xp(self, ctx: ApplicationCommandInteraction, who: discord.Member = None):
         member = who or ctx.author
         user = {"_id": member.id, "guildid": ctx.guild.id}
         user = await self.db.find_one(user)
         lv = user["Level"]
         xp = user["XP"]
         try:
-            embed = disnake.Embed(
+            embed = Embed(
                 title=f"{member.name}'s level in {ctx.guild.name}",
                 description=f"XP: {xp}\nLevel: {lv}",
             )

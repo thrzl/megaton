@@ -1,8 +1,8 @@
 from disnake.ext.commands.cog import Cog
-from disnake.ext.commands import slash_command
+from disnake.ext.commands.slash_core import slash_command
 import disnake
 import sys
-from bot import Atomic
+from bot import Atomic, Embed
 
 
 class Bot_Info(Cog):
@@ -16,8 +16,7 @@ class Bot_Info(Cog):
         aliases=["v"],
     )
     async def vote(self, ctx):
-        print(type(ctx))
-        embed = disnake.Embed(
+        embed = Embed(
             title="Vote for Me!",
             description="**By voting for me, you will:**\n- Support my development!\nUnlock Voter-only perks such as AI that remembers conversations!\n**Vote for me **[here](https://top.gg/bot/766818911505088514/vote)!",
             color=disnake.Color.green(),
@@ -31,7 +30,7 @@ class Bot_Info(Cog):
         usage="changelog",
     )
     async def changelog(self, ctx):
-        embed = disnake.Embed(
+        embed = Embed(
             title="v2020.12.12 Changelog",
             description="- Fixed `whois` glitch\n- Added queue support for music\n- Fixed music commands\n- **Please excuse the large help menu, I'm working on getting it to be a reaction menu!**",
             color=disnake.Color.green(),
@@ -45,9 +44,7 @@ class Bot_Info(Cog):
         usage="privacy",
     )
     async def privacy(self, ctx):
-        embed = disnake.Embed(
-            title="atomic Privacy Policy", color=disnake.Color.green()
-        )
+        embed = Embed(title="atomic Privacy Policy", color=disnake.Color.green())
         embed.add_field(
             name="What information is stored?",
             value="Currently, very little information is stored. The only stored data is through our economy system and per-server settings, which will store your ID/Guild ID. All commands are logged with a username and guild name, neither your discriminator nor your ID be stored in this manner.",
@@ -65,7 +62,7 @@ class Bot_Info(Cog):
         name="invite", description="Get atomic's invite link!", usage="invite"
     )
     async def invite(self, ctx):
-        embed = disnake.Embed(
+        embed = Embed(
             title="Invite Link",
             description="The invite link of atomic!",
             color=disnake.Color.green(),
@@ -88,7 +85,7 @@ class Bot_Info(Cog):
         usage="credits",
     )
     async def credits(self, ctx):
-        embed = disnake.Embed(
+        embed = Embed(
             title="Credits",
             description="This bot was created, hosted, and maintained by <@536644802595520534>. ",
             color=disnake.Color.dark_purple(),
@@ -108,9 +105,10 @@ class Bot_Info(Cog):
         aliases=["info"],
     )
     async def about(self, ctx):
-        embed = disnake.Embed(title="ℹ information", color=disnake.Color.green())
+        embed = Embed(title="ℹ information", color=disnake.Color.green())
         embed.add_field(
-            name="<:python:783034338228043797> python version", value=f"running python {sys.version[:5]}"
+            name="<:python:783034338228043797> python version",
+            value=f"running python {sys.version[:5]}",
         )
         embed.add_field(
             name="<:disnake:783347864259919935> discord.py version",
@@ -129,16 +127,14 @@ class Bot_Info(Cog):
             name="stats",
             value=f"bot is in {len(self.bot.guilds)} guilds and has a total of {mc} users.",
         )
-        embed.add_field(
-            name="credits", value="created by [thrzl](https://thrzl.xyz/)"
-        )
+        embed.add_field(name="credits", value="created by [thrzl](https://thrzl.xyz/)")
         await ctx.response.send_message(embed=embed)
 
     @slash_command(
         name="support", description="Get a link to the support server", usage="support"
     )
     async def support(self, ctx):
-        embed = disnake.Embed(
+        embed = Embed(
             title="Get Support",
             description="Get support for the bot.",
             color=disnake.Color.green(),

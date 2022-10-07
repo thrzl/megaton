@@ -4,6 +4,7 @@ import random
 from pymongo import MongoClient
 import os
 from colorthief import ColorThief
+from bot import Embed
 
 mongo_url = "mongodb+srv://admin:4n0tS0g00D1ne@sentry.z5zvv.mongodb.net/Reliex?retryWrites=true&w=majority"
 cluster = MongoClient(mongo_url)
@@ -46,7 +47,7 @@ class Welcome(commands.Cog):
                 green = int(clr[1])
                 color = discord.Color.from_rgb(red, green, blue)
                 welcome = member.guild.get_channel(wc)
-                embed = disnake.Embed(
+                embed = Embed(
                     title=f"Goodbye {member.name}! 😢",
                     description=f"Thanks for visiting {member.guild.name}!",
                     color=color,
@@ -77,7 +78,7 @@ class Welcome(commands.Cog):
                 green = int(clr[1])
                 color = discord.Color.from_rgb(red, green, blue)
                 welcome = member.guild.get_channel(int(wc))
-                embed = disnake.Embed(
+                embed = Embed(
                     title=f"Goodbye {member.name}! 😢",
                     description=f"Thanks for visiting {member.guild.name}!",
                     color=color,
@@ -108,7 +109,7 @@ class Welcome(commands.Cog):
                 green = int(clr[1])
                 color = discord.Color.from_rgb(red, green, blue)
                 welcome = member.guild.get_channel(int(wc))
-                embed = disnake.Embed(
+                embed = Embed(
                     title=f"Welcome {member.name}! 🎉",
                     description=f"Welcome to {member.guild.name}!",
                     color=color,
@@ -134,7 +135,7 @@ class Welcome(commands.Cog):
         blue = int(clr[2])
         green = int(clr[1])
         color = discord.Color.from_rgb(red, green, blue)
-        embed = disnake.Embed(
+        embed = Embed(
             title=f"Joined {guild.name}!",
             description=f"Guild has {guild.member_count} members and was created on {guild.created_at.now().date()}.",
             color=color,
@@ -144,7 +145,7 @@ class Welcome(commands.Cog):
         embed.set_thumbnail(url=guild.icon_url)
         await homeg.send(embed=embed)
         channel = random.choice(guild.channels)
-        embed = disnake.Embed(
+        embed = Embed(
             title="Thanks for inviting me!",
             description="Thanks for inviting me to your server! If you ever need any help, just go ahead and join the official [support server](https://discord.gg/bNtj2nFnYA)!",
             color=discord.Color.green(),
@@ -178,7 +179,7 @@ class Welcome(commands.Cog):
         green = int(clr[1])
         color = discord.Color.from_rgb(red, green, blue)
         homeg = await self.bot.fetch_channel(773162576141090816)
-        embed = disnake.Embed(title=f"Left {guild.name}!", color=color)
+        embed = Embed(title=f"Left {guild.name}!", color=color)
         embed.set_thumbnail(url=guild.icon_url)
         await homeg.send(embed=embed)
         collection = db["settings"]

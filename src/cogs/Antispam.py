@@ -1,5 +1,6 @@
 from disnake.ext import commands
 import discord
+from bot import Embed
 
 
 class Antispam(commands.Cog):
@@ -19,7 +20,7 @@ class Antispam(commands.Cog):
             retry_after = bucket.update_rate_limit()
             if retry_after:
                 await message.delete()
-                embed = disnake.Embed(
+                embed = Embed(
                     title="atomic Moderation 🛡",
                     description=f"You've been warned in **{message.guild.name}** for spamming.",
                     color=discord.Color.green(),

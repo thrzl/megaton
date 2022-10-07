@@ -6,6 +6,7 @@ from dpymenus import Page, PaginatedMenu
 import ksoftapi
 import lavalink
 from disnake.ext import commands, menus
+from bot import Embed
 
 kclient = ksoftapi.Client("fef9dba21ffb0adbec3337bbc0ac4a6ee74dcc11")
 url_rx = re.compile(r"https?://(?:www\.)?.+")
@@ -25,7 +26,7 @@ class queuemenu(menus.ListPageSource):
 
     @menus.button(emoji="⚛")
     async def about(self, payload):
-        embed = disnake.Embed(title="About atomic", description="stuff goes here")
+        embed = Embed(title="About atomic", description="stuff goes here")
 
     async def format_page(self, menu, entries):
         offset = menu.current_page * self.per_page
@@ -50,7 +51,7 @@ class Music(commands.Cog):
     def has_voted():
         async def predicate(ctx):
             if not await ctx.bot.dbl.get_user_vote(ctx.author.id):
-                embed = disnake.Embed(
+                embed = Embed(
                     title="That's a voter-only command!",
                     description="You can't use this command without voting! Use the `vote` command to vote for me and unlock this command!",
                     color=discord.Color.blue(),
@@ -163,7 +164,7 @@ class Music(commands.Cog):
         aliases=["p"],
         usage="play <query>",
     )
-    async def play(self, ctx, *, query: str = None):
+    async def play(self, ctx: ApplicationCommandInteraction, *, query: str = None):
         empty = []
         try:
             test = str(que[ctx.guild.id])
@@ -200,14 +201,14 @@ class Music(commands.Cog):
                 # Add all of the tracks from the playlist to the queue.
                 player.add(requester=ctx.author.id, track=track)
                 que[ctx.guild.id].append(track)
-            embed = disnake.Embed(
+            embed = Embed(
                 title="<a:cdspin:777565668580261909> Playlist Enqueued!",
                 description=f'{results["playlistInfo"]["name"]} - {len(tracks)} tracks',
                 color=discord.Color.green(),
             )
         else:
             track = results["tracks"][0]
-            embed = disnake.Embed(
+            embed = Embed(
                 title=f"<a:cdspin:777565668580261909> Added {track['info']['title']} to the queue",
                 color=discord.Color.green(),
             )
@@ -257,7 +258,7 @@ class Music(commands.Cog):
     @commands.group()
     async def radio(self, ctx):
         if ctx.invoked_subcommand is None:
-            embed = disnake.Embed(
+            embed = Embed(
                 title="Radio Stations",
                 description=f"**Chill FM** - LoFi Hip Hop\n**RDMIX HOT 100** - Hip Hop/Rap",
                 color=discord.Color.green(),
@@ -333,7 +334,7 @@ class Music(commands.Cog):
         player = self.bot.lavalink.player_manager.get(ctx.guild.id)
         current = await player.node.get_tracks(f"ytsearch:{player.current.identifier}")
         current = current["tracks"][0]
-        embed = disnake.Embed(
+        embed = Embed(
             title=f"Current Track for {ctx.guild.name}",
             description=f"{current['info']['title']} - {current['info']['author']}",
         )
@@ -346,16 +347,14 @@ class Music(commands.Cog):
     )
     async def queue(self, ctx):
         page = 1
-        embed = disnake.Embed(
-            title=f"Queue for {ctx.guild.name}", color=discord.Color.green()
-        )
+        embed = Embed(title=f"Queue for {ctx.guild.name}", color=discord.Color.green())
         try:
             player = self.bot.lavalink.player_manager.get(ctx.guild.id)
         except:
             await ctx.send("I'm not connected to a voice channel!")
         else:
             if player.queue == [] and not player.is_playing:
-                embed = disnake.Embed(
+                embed = Embed(
                     title="There aren't any songs yet...",
                     description="Doesn't mean you can't start the party! Use the `play` command to play a song!",
                     color=discord.Color.green(),
@@ -371,7 +370,7 @@ class Music(commands.Cog):
             current = current["tracks"][0]
             emlist = []
             for i in range(0, len(que[ctx.guild.id]) // 5):
-                embed = disnake.Embed(
+                embed = Embed(
                     title=f"Queue for {ctx.guild.name}", color=discord.Color.green()
                 )
                 for t in que[ctx.guild.id][start:end]:
@@ -411,7 +410,7 @@ class Music(commands.Cog):
         usage="lyrics [song]",
         aliases=["ly"],
     )
-    async def lyrics(self, ctx, song="none"):
+    async def lyrics(self, ctx: ApplicationCommandInteraction, song="none"):
         try:
             player = self.bot.lavalink.player_manager.get(ctx.guild.id)
         except:
@@ -421,7 +420,7 @@ class Music(commands.Cog):
                 try:
                     results = await kclient.music.lyrics(song)
                 except ksoftapi.NoResults:
-                    embed = disnake.Embed(
+                    embed = Embed(
                         title="I couldn't find the lyrics for that song!",
                         color=discord.Color.red(),
                     )
@@ -429,7 +428,7 @@ class Music(commands.Cog):
                     return
                 else:
                     first = results[0]
-                    embed = disnake.Embed(
+                    embed = Embed(
                         title=f"Lyrics for {first.name}",
                         description=first.lyrics[:1024],
                         color=discord.Color.green(),
@@ -444,7 +443,7 @@ class Music(commands.Cog):
             try:
                 results = await kclient.music.lyrics(song)
             except ksoftapi.NoResults:
-                embed = disnake.Embed(
+                embed = Embed(
                     title="I couldn't find the lyrics for that song!",
                     color=discord.Color.red(),
                 )
@@ -452,7 +451,7 @@ class Music(commands.Cog):
                 return
             else:
                 first = results[0]
-                embed = disnake.Embed(
+                embed = Embed(
                     title=f"Lyrics for {first.name}",
                     description=first.lyrics[:1024],
                     color=discord.Color.green(),

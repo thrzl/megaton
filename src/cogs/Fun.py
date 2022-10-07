@@ -1,13 +1,17 @@
 from typing import List
-from disnake import Member, Embed, File, Color, Message
+from disnake import Member, File, Color, Message
 from disnake.ext.commands.cooldowns import BucketType
 from disnake.ext.commands.core import cooldown, check, is_nsfw
-from disnake.ext.commands import slash_command, Cog
+from disnake.ext.commands.cog import Cog
+from disnake.ext.commands.slash_core import slash_command
+from disnake.ext.commands.slash_core import ApplicationCommandInteraction
 import json
 from random import choice
 from utils import CategoryEmbed
 import ksoftapi
-# from disnake.ext.bridge.context import BridgeApplicationContext
+from bot import Embed
+
+# from disnake.ext.bridge.context import ApplicationCommandInteraction
 
 kc = ksoftapi.Client("fef9dba21ffb0adbec3337bbc0ac4a6ee74dcc11")
 import os
@@ -36,7 +40,7 @@ class Fun(Cog):
     # @slash_command(
     #     name="votecheck", description="Check if you can redeem your voter perks!"
     # )
-    # async def votecheck(self, ctx, member: Member = None):
+    # async def votecheck(self, ctx: ApplicationCommandInteraction,member: Member = None):
     #     member = member or ctx.author
     #     if await self.dbl.get_user_vote(member.id):
     #         await ctx.response.send_message(f"{member} has voted!")
@@ -52,13 +56,10 @@ class Fun(Cog):
     async def dog(self, ctx):
         async with aiohttp.ClientSession() as session:
             response = await session.get("https://some-random-api.ml/facts/dog")
-            response = await response.text()
-            factj = json.loads(response)
+            factj = await response.json()
             fact = factj["fact"]
-        async with aiohttp.ClientSession() as session:
-            response = await session.get("https://some-random-api.ml/img/dog")
-            response = await response.text()
-            imgj = json.loads(response)
+            imgres = await session.get("https://some-random-api.ml/img/dog")
+            imgj = await imgres.json()
             imgurl = imgj["link"]
         dogtitle = [
             "Wurf!",
@@ -70,7 +71,7 @@ class Fun(Cog):
         ]
         dogemoji = (" 🦴", " 🐶", " 🐕", " 🐕‍🦺", " 🐾")
         title = choice(dogtitle) + choice(dogemoji)
-        embed = Embed(title=title, color=ctx.author.color)
+        embed = Embed(title=title)
         embed.set_footer(text=f"Did you know? {fact}")
         embed.set_image(url=imgurl)
         await ctx.response.send_message(embed=embed)
@@ -95,7 +96,7 @@ class Fun(Cog):
         cattitle = ("mrow!", "mrow?", "mrow...", "meow!")
         catemoji = (" 🐟", " 🐱", " 🐈", " 🐕‍", " 🥫", " 🐾", " 😼")
         title = choice(cattitle) + choice(catemoji)
-        embed = Embed(title=title, color=ctx.author.color)
+        embed = Embed(title=title)
         embed.set_footer(text=f"Did you know? {fact}")
         embed.set_image(url=imgurl)
         await ctx.response.send_message(embed=embed)
@@ -120,7 +121,7 @@ class Fun(Cog):
         foxtitle = ("...fox...sounds?", "what **does** the fox say???")
         foxemoji = (" 🕶", " 🐾", " 🦊")
         title = choice(foxtitle) + choice(foxemoji)
-        embed = Embed(title=title, color=ctx.author.color)
+        embed = Embed(title=title)
         embed.set_footer(text=f"Did you know? {fact}")
         embed.set_image(url=imgurl)
         await ctx.response.send_message(embed=embed)
@@ -139,7 +140,7 @@ class Fun(Cog):
                 caption = memej["title"]
                 memeurl = memej["url"]
                 title = caption
-                embed = Embed(title=title, color=ctx.author.color)
+                embed = Embed(title=title)
                 embed.set_image(url=memeurl)
                 await ctx.response.send_message(embed=embed)
 
@@ -150,8 +151,8 @@ class Fun(Cog):
         usage="chat <message>",
     )
     @cooldown(1, 2, BucketType.user)
-    async def chat(self, ctx, message):
-        await ctx.channel.trigger_typing()
+    async def chat(self, ctx: ApplicationCommandInteraction, message):
+        await ctx.response.defer()
         async with aiohttp.ClientSession() as session:
             # if await self.dbl.get_user_vote(ctx.author.id):
             url = "https://robomatic-ai.p.rapidapi.com/api.php"
@@ -210,7 +211,7 @@ class Fun(Cog):
         await prompt.edit(embed=embed)
 
     @slash_command(name="bad", description="Bad boy!", usage="bad [user]")
-    async def bad(self, ctx, m: Member = None):
+    async def bad(self, ctx: ApplicationCommandInteraction, m: Member = None):
         member: Member = m or ctx.author
         b = await dc.image_process(
             ImageFeatures.bad(),
@@ -232,7 +233,7 @@ class Fun(Cog):
         aliases=["recaptcha"],
     )
     async def captcha(
-        self, ctx, text: str, member: Member = None
+        self, ctx: ApplicationCommandInteraction, text: str, member: Member = None
     ):
         member = member or ctx.author
         image = str(member.avatar.url if member.avatar else member.default_avatar.url)
@@ -250,7 +251,9 @@ class Fun(Cog):
         usage="triggered <user>",
         aliases=["trigger"],
     )
-    async def triggered(self, ctx, member: Member = None):
+    async def triggered(
+        self, ctx: ApplicationCommandInteraction, member: Member = None
+    ):
         member = member or ctx.author
         image = str(member.avatar.url if member.avatar else member.default_avatar.url)[
             :-10
@@ -279,7 +282,7 @@ class Fun(Cog):
     @slash_command(
         name="trash", description="Take out the trash!", usage="trash [user]"
     )
-    async def trash(self, ctx, member: Member = None):
+    async def trash(self, ctx: ApplicationCommandInteraction, member: Member = None):
         member = member or ctx.author
         b = await dc.image_process(
             ImageFeatures.trash(),
@@ -294,7 +297,7 @@ class Fun(Cog):
         os.remove(f"{member.id}trash.png")
 
     @slash_command(name="wasted", description="WASTED", usage="wasted [user]")
-    async def wasted(self, ctx, member: Member = None):
+    async def wasted(self, ctx: ApplicationCommandInteraction, member: Member = None):
         member = member or ctx.author
         w = await dc.image_process(
             ImageFeatures.wasted(),
@@ -307,7 +310,7 @@ class Fun(Cog):
         os.remove(f"{member.id}wasted.png")
 
     @slash_command(name="jail", description="Put a user in jail!", usage="jail [user]")
-    async def jail(self, ctx, member: Member = None):
+    async def jail(self, ctx: ApplicationCommandInteraction, member: Member = None):
         member = member or ctx.author
         j = await dc.image_process(
             ImageFeatures.jail(),
@@ -327,7 +330,7 @@ class Fun(Cog):
         usage="quote <user> <message>",
     )
     async def quote(
-        self, ctx, msg: str, member: Member = None
+        self, ctx: ApplicationCommandInteraction, msg: str, member: Member = None
     ):
         member = member or ctx.author
         q = await dc.image_process(
@@ -351,7 +354,7 @@ class Fun(Cog):
         usage="roast <user>",
         aliases=["insult"],
     )
-    async def roast(self, ctx, member: Member = None):
+    async def roast(self, ctx: ApplicationCommandInteraction, member: Member = None):
         member = member or ctx.author
         roast = await dc.roast()
         embed = Embed(title=f"{member.name}, {roast}", color=Color.green())
@@ -401,7 +404,7 @@ class Fun(Cog):
         description="Ascii-fy someone's profile picture!",
         usage="ascii [user]",
     )
-    async def ascii(self, ctx, member: Member = None):
+    async def ascii(self, ctx: ApplicationCommandInteraction, member: Member = None):
         member = member or ctx.author
         a = await dc.image_process(
             ImageFeatures.ascii(),
@@ -417,7 +420,7 @@ class Fun(Cog):
         os.remove(f"{member.id}ascii.png")
 
     @slash_command(name="tweet", description="Tweet something!", usage="tweet <text>")
-    async def tweet(self, ctx, msg):
+    async def tweet(self, ctx: ApplicationCommandInteraction, msg):
         t = await dc.image_process(
             ImageFeatures.tweet(),
             url=str(ctx.author.avatar_url_as(format="png")),
@@ -492,7 +495,7 @@ class Fun(Cog):
         pandatitle = ["ee-ee-ee! ", "Grrr... ", "Skeee! "]
         pandaemoji = ["🐼", ":bamboo:"]
         title = choice(pandatitle) + choice(pandaemoji)
-        embed = Embed(title=title, color=ctx.author.color)
+        embed = Embed(title=title)
         embed.set_footer(text=f"Did you know? {fact}")
         embed.set_image(url=imgurl)
         await ctx.response.send_message(embed=embed)
@@ -567,8 +570,8 @@ class Fun(Cog):
         aliases=["ud", "urbandict", "udict"],
     )
     @is_nsfw()
-    async def urban(self, ctx, word):
-        await ctx.channel.trigger_typing()
+    async def urban(self, ctx: ApplicationCommandInteraction, word):
+        await ctx.response.defer()
         async with aiohttp.ClientSession() as session:
             querystring = {"term": word}
             headers = {
@@ -624,7 +627,7 @@ class Fun(Cog):
         ]
         birdemoji = ["🐦", "🐤", "🐣", "🐥", "🦃", "🦚", "🦜", "🦢", "🕊", "🦉", "🦆", "🦅"]
         title = choice(birdtitle) + choice(birdemoji)
-        embed = Embed(title=title, color=ctx.author.color)
+        embed = Embed(title=title)
         embed.set_footer(text=f"Did you know? {fact}")
         embed.set_image(url=imgurl)
         await ctx.response.send_message(embed=embed)

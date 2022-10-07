@@ -3,7 +3,7 @@ from disnake.ext import commands
 import statcord
 
 
-class StatcordPost(commands.Cog, name="stat"):
+class StatcordPost(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.key = "statcord.com-UXFwSyFGaY0b55qB6eCA"

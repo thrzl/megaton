@@ -24,7 +24,7 @@ class Help(commands.Cog, name="Help"):
             f"<@!{self.bot.user.id}>"
         ) and message.content.endswith(f"<@!{self.bot.user.id}>"):
             p = await get_prefix(message)
-            embed = disnake.Embed(
+            embed = Embed(
                 title="Hey there! 👋🏽",
                 description=f"I couldn't help but notice you mentioned me! My prefix for this server is `{p}`, but you can always just mention me to use commands!",
                 color=discord.Color.green(),
@@ -42,7 +42,7 @@ class Help(commands.Cog, name="Help"):
             if c.qualified_name not in hidden:
                 cogname = c.qualified_name.replace("_", " ")
 
-                embed = disnake.Embed(color=discord.Color.green())
+                embed = Embed(color=discord.Color.green())
                 cmds = c.get_commands()
 
                 for d in cmds:
@@ -66,10 +66,10 @@ class Help(commands.Cog, name="Help"):
         await menu.open()
 
     @commands.command(name="helpbutwithoutpermsforproperpagination")
-    async def helpnomanage(self, ctx, command="none"):
+    async def helpnomanage(self, ctx: ApplicationCommandInteraction, command="none"):
         p = await get_prefix(ctx)
         if command == "none":
-            embed = disnake.Embed(
+            embed = Embed(
                 title="atomic Help",
                 description=f"**⚠ I do not have the `MANAGE_MESSAGES` permission in this server. Many features are reliant on this, so please give me this ability! ⚠**\nMy prefix for this server: `{p}`\n`<arg>` is required\n`[arg]` is optional",
                 color=discord.Color.green(),
@@ -101,7 +101,7 @@ class Help(commands.Cog, name="Help"):
             )
             await ctx.send(embed=embed)
         elif command.lower().startswith("mod"):
-            embed = disnake.Embed(
+            embed = Embed(
                 title="Moderation Help",
                 description="Help with moderation commands",
                 color=ctx.author.color,
@@ -116,7 +116,7 @@ class Help(commands.Cog, name="Help"):
                 )
             await ctx.send(embed=embed)
         elif command.lower().startswith("bot"):
-            embed = disnake.Embed(
+            embed = Embed(
                 title="Bot Info Help",
                 description="Help with my Bot Information commands!",
                 color=ctx.author.color,
@@ -130,7 +130,7 @@ class Help(commands.Cog, name="Help"):
                 )
             await ctx.send(embed=embed)
         elif command.lower().startswith("util"):
-            embed = disnake.Embed(
+            embed = Embed(
                 title="Utility Help",
                 description="Help with utility commands",
                 color=ctx.author.color,
@@ -144,7 +144,7 @@ class Help(commands.Cog, name="Help"):
                 )
             await ctx.send(embed=embed)
         elif command.lower().startswith("econ"):
-            embed = disnake.Embed(
+            embed = Embed(
                 title="Economy Help",
                 description="Help with my Economy system!",
                 color=ctx.author.color,
@@ -158,7 +158,7 @@ class Help(commands.Cog, name="Help"):
                 )
             await ctx.send(embed=embed)
         elif command.lower().startswith("fun"):
-            embed = disnake.Embed(
+            embed = Embed(
                 title="Fun Help",
                 description="Help with fun commands",
                 color=ctx.author.color,
@@ -177,9 +177,7 @@ class Help(commands.Cog, name="Help"):
             for i in self.bot.commands:
                 if i.name.lower() == command.lower() or command.lower() in i.aliases:
                     cmdn.append(i.name.lower())
-                    embed = disnake.Embed(
-                        title=f"{i.name}", color=discord.Color.green()
-                    )
+                    embed = Embed(title=f"{i.name}", color=discord.Color.green())
                     if i.description == "":
                         description = "None"
                     else:
@@ -207,7 +205,7 @@ class Help(commands.Cog, name="Help"):
                 close = close.replace("]", "")
                 close = close.replace("'", "")
                 close = close.replace(",", "")
-                embed = disnake.Embed(
+                embed = Embed(
                     title="Command not found...",
                     description=f"Did you mean:\n {close}",
                     color=discord.Color.green(),
@@ -219,7 +217,7 @@ class Help(commands.Cog, name="Help"):
     @commands.command(
         name="Help", description="Opens the help menu!", usage="help [command]"
     )
-    async def help(self, ctx, command="none"):
+    async def help(self, ctx: ApplicationCommandInteraction, command="none"):
         helpcog = self.bot.get_cog("Help")
         if not ctx.guild.me.permissions_in(ctx.channel).manage_messages:
             await helpcog.helpnomanage(ctx, command)
@@ -231,11 +229,11 @@ class Help(commands.Cog, name="Help"):
         description="Opens the help menu!",
         usage="help [command]",
     )
-    async def helpwithperms(self, ctx, command="none"):
+    async def helpwithperms(self, ctx: ApplicationCommandInteraction, command="none"):
         p = await get_prefix(ctx)
         elist = []
         if command == "none":
-            embed = disnake.Embed(
+            embed = Embed(
                 title="atomic Help",
                 description=f"My prefix for this server: `{p}`\n`<arg>` is required\n`[arg]` is optional",
                 color=discord.Color.green(),
@@ -249,9 +247,7 @@ class Help(commands.Cog, name="Help"):
                 if c.qualified_name not in hidden and c.get_commands():
                     cogname = c.qualified_name.replace("_", " ")
 
-                    embed = disnake.Embed(
-                        title="atomic Help", color=discord.Color.green()
-                    )
+                    embed = Embed(title="atomic Help", color=discord.Color.green())
                     cmds = c.get_commands()
 
                     for d in cmds:
@@ -280,7 +276,7 @@ class Help(commands.Cog, name="Help"):
             print("Opened menu")
         #    """
         elif command.lower().startswith("mod"):
-            embed = disnake.Embed(
+            embed = Embed(
                 title="Moderation Help",
                 description="Help with moderation commands",
                 color=discord.Color.green(),
@@ -291,7 +287,7 @@ class Help(commands.Cog, name="Help"):
             for cmd in mcog.get_commands():
                 if len(embed.fields) >= 5:
                     elist.append(embed)
-                    embed = disnake.Embed(
+                    embed = Embed(
                         title="Moderation Help",
                         description="Help with moderation commands",
                         color=discord.Color.green(),
@@ -314,7 +310,7 @@ class Help(commands.Cog, name="Help"):
             await menu.open()
 
         elif command.lower().startswith("bot"):
-            embed = disnake.Embed(
+            embed = Embed(
                 title="Bot Info Help",
                 description="Help with my Bot Information commands!",
                 color=discord.Color.green(),
@@ -323,7 +319,7 @@ class Help(commands.Cog, name="Help"):
             for i in cog.get_commands():
                 if len(embed.fields) >= 5:
                     elist.append(embed)
-                    embed = disnake.Embed(
+                    embed = Embed(
                         title="Bot Info Help",
                         description="Help with my Bot Information commands!",
                         color=discord.Color.green(),
@@ -347,7 +343,7 @@ class Help(commands.Cog, name="Help"):
             await menu.open()
 
         elif command.lower().startswith("util"):
-            embed = disnake.Embed(
+            embed = Embed(
                 title="Utility Help",
                 description="Help with utility commands",
                 color=discord.Color.green(),
@@ -356,7 +352,7 @@ class Help(commands.Cog, name="Help"):
             for i in cog.get_commands():
                 if len(embed.fields) >= 5:
                     elist.append(embed)
-                    embed = disnake.Embed(
+                    embed = Embed(
                         title="Utility Help",
                         description="Help with utility commands",
                         color=discord.Color.green(),
@@ -380,7 +376,7 @@ class Help(commands.Cog, name="Help"):
             await menu.open()
 
         elif command.lower().startswith("econ"):
-            embed = disnake.Embed(
+            embed = Embed(
                 title="Economy Help",
                 description="Help with my Economy system!",
                 color=discord.Color.green(),
@@ -389,7 +385,7 @@ class Help(commands.Cog, name="Help"):
             for i in cog.get_commands():
                 if len(embed.fields) >= 5:
                     elist.append(embed)
-                    embed = disnake.Embed(
+                    embed = Embed(
                         title="Economy Help",
                         description="Help with my Economy system!",
                         color=discord.Color.green(),
@@ -413,7 +409,7 @@ class Help(commands.Cog, name="Help"):
             await menu.open()
 
         elif command.lower().startswith("fun"):
-            embed = disnake.Embed(
+            embed = Embed(
                 title="Fun Help",
                 description="Help with fun commands",
                 color=discord.Color.green(),
@@ -422,7 +418,7 @@ class Help(commands.Cog, name="Help"):
             for i in cog.get_commands():
                 if len(embed.fields) >= 5:
                     elist.append(embed)
-                    embed = disnake.Embed(
+                    embed = Embed(
                         title="Fun Help",
                         description="Help with fun commands",
                         color=discord.Color.green(),
@@ -448,7 +444,7 @@ class Help(commands.Cog, name="Help"):
                 await menu.open()
 
         elif command.lower().startswith("music"):
-            embed = disnake.Embed(
+            embed = Embed(
                 title="Music Help",
                 description="Help with music commands",
                 color=discord.Color.green(),
@@ -457,7 +453,7 @@ class Help(commands.Cog, name="Help"):
             for i in cog.get_commands():
                 if len(embed.fields) >= 5:
                     elist.append(embed)
-                    embed = disnake.Embed(
+                    embed = Embed(
                         title="Music Help",
                         description="Help with music commands",
                         color=discord.Color.green(),
@@ -488,9 +484,7 @@ class Help(commands.Cog, name="Help"):
             for i in self.bot.commands:
                 if i.name.lower() == command.lower() or command.lower() in i.aliases:
                     cmdn.append(i.name.lower())
-                    embed = disnake.Embed(
-                        title=f"{i.name}", color=discord.Color.green()
-                    )
+                    embed = Embed(title=f"{i.name}", color=discord.Color.green())
                     if i.description == "":
                         description = "None"
                     else:
@@ -518,7 +512,7 @@ class Help(commands.Cog, name="Help"):
                 close = close.replace("]", "")
                 close = close.replace("'", "")
                 close = close.replace(",", "")
-                embed = disnake.Embed(
+                embed = Embed(
                     title="Command not found...",
                     description=f"Did you mean:\n {close}",
                     color=discord.Color.green(),

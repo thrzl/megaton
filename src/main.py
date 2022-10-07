@@ -80,14 +80,14 @@ async def on_message(message: Message):
 
 
 # client.load_extension("jishaku")
-# client.load_extension("cogs.Moderation")
-# client.load_extension("cogs.Bot_Owner")
+client.load_extension("cogs.Moderation")
+client.load_extension("cogs.Bot_Owner")
 # client.load_extension("cogs.Welcome")
 # client.load_extension("cogs.Help")
-# client.load_extension("cogs.Economy")
+client.load_extension("cogs.Economy")
 client.load_extension("cogs.Fun")
 # client.load_extension("cogs.stat")
-# client.load_extension("cogs.Utility")
+client.load_extension("cogs.Utility")
 # client.load_extension("cogs.Music")
 # client.load_extension("cogs.Config")
 # client.load_extension("cogs.Level")

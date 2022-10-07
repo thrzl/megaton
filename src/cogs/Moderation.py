@@ -1,11 +1,14 @@
+from disnake.errors import HTTPException, Forbidden
 from disnake.ext import commands
-from disnake.ext.bridge.context import BridgeApplicationContext
-from disnake.ext.commands import slash_command, Embed, Color, Member, Object, utils
-import typing
+from disnake.ext.commands import slash_command
+from disnake import Color, Member, Object
+from disnake.ext.commands.slash_core import ApplicationCommandInteraction
 import asyncio
 from disnake.ext.commands.cooldowns import BucketType
 import ksoftapi
-from bot import Atomic, HeirarchyErrorType
+from bot import Atomic, HeirarchyErrorType, Embed
+from disnake.utils import get
+from typing import List, Optional
 
 kclient = ksoftapi.Client("fef9dba21ffb0adbec3337bbc0ac4a6ee74dcc11")
 
@@ -35,23 +38,19 @@ class Moderation(commands.Cog):
     @commands.bot_has_permissions(ban_members=True, kick_members=True)
     @commands.max_concurrency(1, per=BucketType.default, wait=True)
     @has_voted()
-    async def scan(self, ctx: BridgeApplicationContext, *args):
+    async def scan(self, ctx: ApplicationCommandInteraction, *args):
+        ulist: List[Member] = []
         await ctx.response.send_message(
             f"Beginning Scan... Estimated Duration: {len(ctx.guild.members)*3} seconds"
         )
-        for i in ctx.guild.members:
-            if not i.bot:
-                if await kclient.bans.check(i.id):
-                    ban = await kclient.bans.info(i.id)
-                    embed = Embed(
-                        title=f"⚠ {i} is banned from KSoft!",
-                        description=f"User was banned for {ban.reason}. ([proof]({ban.proof}))",
-                        color=Color.red(),
-                    )
-                    await ctx.send(embed=embed)
+        for member in ctx.guild.members:
+            if not member.bot:
+                if await kclient.bans.check(member.id):
+                    ban = await kclient.bans.info(member.id)
+                    ulist.append(member)
                     if "-ban" in args or "-b" in args:
                         await ctx.guild.ban(
-                            i,
+                            member,
                             reason=f"Banned by {ctx.author} through scan command.",
                             delete_message_days=0,
                         )
@@ -59,13 +58,13 @@ class Moderation(commands.Cog):
                         break
                     elif "-kick" in args or "-k" in args:
                         await ctx.guild.kick(
-                            i, reason=f"Kicked by {ctx.author} through scan command."
+                            member, reason=f"Kicked by {ctx.author} through scan command."
                         )
                 await asyncio.sleep(3)
         await ctx.send("Scan complete!")
 
     @scan.error
-    async def on_error(ctx: BridgeApplicationContext, e):
+    async def on_error(self, ctx: ApplicationCommandInteraction, e):
         if isinstance(e, commands.MaxConcurrencyReached):
             embed = Embed(
                 title="This command is currently being used by someone else!",
@@ -85,12 +84,12 @@ class Moderation(commands.Cog):
     @commands.bot_has_permissions(manage_channels=True)
     async def lock(
         self,
-        ctx: BridgeApplicationContext,
-        time="infinite",
+        ctx: ApplicationCommandInteraction,
+        time=None,
         *,
         reason="No Reason Provided.",
     ):
-        if time == "infinite":
+        if not time:
             seconds, time = self.bot.calculate_time(time)
         else:
             formatendtime = "further notice"
@@ -104,11 +103,11 @@ class Moderation(commands.Cog):
         )
         msg = await ctx.send(embed=embed)
         guildroles = await ctx.guild.fetch_roles()
-        everyone = utils.get(guildroles, name="@everyone")
+        everyone = get(guildroles, name="@everyone")
         await ctx.channel.set_permissions(
             everyone, send_messages=False, read_messages=True
         )
-        if time != "infinite":
+        if time:
             await asyncio.sleep(seconds)
             embed = Embed(
                 title="This channel is now unlocked 🔓",
@@ -129,7 +128,7 @@ class Moderation(commands.Cog):
     @commands.bot_has_permissions(manage_channels=True)
     async def unlock(self, ctx):
         guildroles = await ctx.guild.fetch_roles()
-        everyone = utils.get(guildroles, name="@everyone")
+        everyone = get(guildroles, name="@everyone")
         await ctx.channel.set_permissions(everyone, overwrite=None)
         embed = Embed(
             title="This channel was unlocked",
@@ -147,10 +146,10 @@ class Moderation(commands.Cog):
     @commands.bot_has_permissions(manage_messages=True)
     async def clean(
         self,
-        ctx: BridgeApplicationContext,
+        ctx: ApplicationCommandInteraction,
         amount=2,
         *,
-        member: typing.Optional[Member],
+        member: Optional[Member],
     ):
         if member:
 
@@ -174,7 +173,7 @@ class Moderation(commands.Cog):
     @commands.bot_has_permissions(kick_members=True)
     async def kick(
         self,
-        ctx: BridgeApplicationContext,
+        ctx: ApplicationCommandInteraction,
         member: Member,
         *,
         reason="No reason provided",
@@ -206,7 +205,7 @@ class Moderation(commands.Cog):
     @commands.has_permissions(kick_members=True)
     async def warn(
         self,
-        ctx: BridgeApplicationContext,
+        ctx: ApplicationCommandInteraction,
         member: Member,
         *,
         reason="No reason provided",
@@ -236,7 +235,7 @@ class Moderation(commands.Cog):
     @commands.bot_has_permissions(ban_members=True)
     async def ban(
         self,
-        ctx: BridgeApplicationContext,
+        ctx: ApplicationCommandInteraction,
         member: Member,
         *,
         reason="no reason provided",
@@ -264,7 +263,7 @@ class Moderation(commands.Cog):
     )
     @commands.has_permissions(ban_members=True)
     @commands.bot_has_permissions(ban_members=True)
-    async def unban(self, ctx: BridgeApplicationContext, *, member: Object):
+    async def unban(self, ctx: ApplicationCommandInteraction, *, member: Object):
         try:
             user = await self.bot.fetch_user(member.id)
         except:
@@ -279,7 +278,7 @@ class Moderation(commands.Cog):
             )
         try:
             user.send("You have been unbanned from " + ctx.guild.name)
-        except:
+        except (HTTPException, Forbidden):
             pass
         await ctx.send(user + " has been unbanned from " + ctx.guild.name)
 
@@ -293,7 +292,7 @@ class Moderation(commands.Cog):
     @commands.bot_has_permissions(manage_channels=True)
     async def mute(
         self,
-        ctx: BridgeApplicationContext,
+        ctx: ApplicationCommandInteraction,
         member: Member,
         *,
         reason="No reason provided",
@@ -334,7 +333,7 @@ class Moderation(commands.Cog):
     @commands.bot_has_permissions(manage_channels=True)
     async def lockout(
         self,
-        ctx: BridgeApplicationContext,
+        ctx: ApplicationCommandInteraction,
         member: Member,
         *,
         reason="No reason provided",
@@ -370,7 +369,7 @@ class Moderation(commands.Cog):
     )
     @commands.has_permissions(kick_members=True)
     @commands.bot_has_permissions(manage_channels=True)
-    async def unlockout(self, ctx: BridgeApplicationContext, *, member: Member):
+    async def unlockout(self, ctx: ApplicationCommandInteraction, *, member: Member):
         if (
             member.top_role >= ctx.author.top_role
             and ctx.guild.owner_id != ctx.author.id
@@ -402,7 +401,7 @@ class Moderation(commands.Cog):
     @commands.bot_has_permissions(manage_channels=True)
     async def unmute(
         self,
-        ctx: BridgeApplicationContext,
+        ctx: ApplicationCommandInteraction,
         member: Member,
         *,
         reason="No reason provided",
@@ -437,7 +436,7 @@ class Moderation(commands.Cog):
     @slash_command(name="timeout", description="Revokes read permissions from a user.")
     @commands.bot_has_permissions(kick_members=True)
     @commands.has_permissions(kick_members=True)
-    async def timeout(self, ctx: BridgeApplicationContext, member: Member):
+    async def timeout(self, ctx: ApplicationCommandInteraction, member: Member):
         if (
             member.top_role >= ctx.author.top_role
             and ctx.guild.owner_id != ctx.author.id
@@ -467,7 +466,7 @@ class Moderation(commands.Cog):
     )
     @commands.bot_has_permissions(kick_members=True)
     @commands.has_permissions(kick_members=True)
-    async def untimeout(self, ctx: BridgeApplicationContext, member: Member):
+    async def untimeout(self, ctx: ApplicationCommandInteraction, member: Member):
         if (
             member.top_role >= ctx.author.top_role
             and ctx.guild.owner_id != ctx.author.id
