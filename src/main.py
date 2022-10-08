@@ -24,8 +24,6 @@ logger.addHandler(handler)
 
 client = Atomic(
     token=environ["TOKEN"],
-    description="A general purpose Discord bot made by a middle schooler.",
-    case_insensitive=True,
 )
 
 
@@ -67,7 +65,7 @@ async def on_message(message: Message):
             client.reload_extension(f"cogs.{i}")
         await message.add_reaction("✅")
         return
-    elif message.content == "load":
+    elif message.content.startswith("load"):
         c = [i for i in message.content.split(" ")[1:]]
         for i in c:
             try:
