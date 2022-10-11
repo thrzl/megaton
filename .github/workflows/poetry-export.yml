@@ -1,0 +1,22 @@
+name: poetry export to requirements.txt
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+
+jobs:
+  export-requirements-txt:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+    - name: install Poetry
+      run: pip install poetry
+    - name: export requirements.txt
+      run: poetry export -f requirements.txt --output requirements.txt --without-hashes
+
+branding:
+  icon: clipboard
