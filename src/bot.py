@@ -1,12 +1,12 @@
+from typing import Optional
 from disnake import Intents, Member, Embed as _Embed, Activity, ActivityType
 from disnake.types.embed import Embed as EmbedData
-from disnake.ext.commands.bot import Bot
-from disnake.ext.commands.bot import when_mentioned_or
-from motor.motor_asyncio import AsyncIOMotorClient
+from disnake.ext.commands.bot import InteractionBot
 from datetime import datetime, timedelta
 from enum import Enum
 from os import environ
 from asyncio import sleep
+from statcord import StatcordClient
 
 
 class FalseVaccum(Exception):
@@ -14,7 +14,7 @@ class FalseVaccum(Exception):
 
 
 class HeirarchyError(Exception):
-    pass
+    text: Optional[str] = None
 
 
 class HeirarchyErrorType(Enum):
@@ -23,39 +23,67 @@ class HeirarchyErrorType(Enum):
 
 
 class Embed(_Embed):
+    __slots__ = (
+        "title",
+        "url",
+        "type",
+        "_timestamp",
+        "_colour",
+        "_footer",
+        "_image",
+        "_thumbnail",
+        "_video",
+        "_provider",
+        "_author",
+        "_fields",
+        "description",
+        "_files",
+        "preserve_case",
+    )
+
     def __init__(self, color=0x2F3136, preserve_case=False, **kwargs):
         super().__init__(color=color, **kwargs)
         self.preserve_case = preserve_case
-        self.timestamp = datetime.utcnow()
-    
+
     def to_dict(self) -> EmbedData:
         if not self.preserve_case:
-            for i in self.fields:
-                print(self.fields)
-                if i.name: i.name = i.name.lower()
-                if i.value: i.value = i.value.lower()
+            f = self.fields
+            self.clear_fields()
+            for field in f:
+                self.add_field(
+                    name=field.name.lower() if field.name else None,
+                    value=field.value.lower() if field.value else None,
+                    inline=field.inline if field.inline is not None else True,
+                )
+            if self._footer:
+                self._footer["text"] = self._footer["text"].lower()
+                self.set_footer(**{k: v for k, v in self._footer.items()})  # type: ignore
+            if self._author:
+                self.set_author(**{k: v for k, v in self._author.items()})  # type: ignore
+            if self.title:
+                self.title = self.title.lower()
+            if self.description:
+                self.description = self.description.lower()
         return super().to_dict()
 
 
-class Atomic(Bot):
-    db: AsyncIOMotorClient
+class Megaton(InteractionBot):
 
     def __init__(self, token: str, intents: Intents = None, *args, **kwargs):
-        super().__init__(command_prefix=when_mentioned_or("a!"))
+        super().__init__()
         if not intents:
             intents = Intents.all()
             intents.message_content = True
         self.token = token
-        db = AsyncIOMotorClient(environ["DATABASE_URL"])
-        self.db = db["atomic"]
         self.Embed = Embed
         self.loop.create_task(self.ch_pr())
+        self.statcord_client = StatcordClient(self, environ["STATCORD_KEY"])
         # dbl = dblpy.DBLClient(
         #     client,
         #     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Ijc2NjgxODkxMTUwNTA4ODUxNCIsImJvdCI6dHJ1ZSwiaWF0IjoxNjA2MzI0Mjc5fQ.ADjcN7pcHL9D5lfnGYHPQH8lXQyvqxzcWg7jSHLIgrs",
         #     True,
         #     webhook_auth="tPL8UP3qyn9XikHOA9357QpGEEawK2bv",
-        #     webhook_path="/dblhookatomic",
+        #     webhook_path="/dblhookmegaton",
         # )
 
     def run(self):
@@ -82,18 +110,11 @@ class Atomic(Bot):
 
     async def ch_pr(self):
         await self.wait_until_ready()
-        # statuses = ["that's really cool and all, but i don't remember asking","i looked through the fbi records, but i couldn't find a single person who asked","billy la bufanda's a player bro","when in doubt, mumble","no","nothing sucks more than that moment during an argument when you realize you’re wrong","myself","glade air freshener","when the virus is over, i still want to stay away from some of you","I hope life isn't a joke, because i don't get it","the purpose of life is a life of purpose","when life gives you lemons, throw them at people","with fork bombs on his main pc 👀","i'm nobody. nobody's perfect. therefore, i'm perfect","i wish i were you so i could be friends with me","some people just need a high-five to the face","Parachute for sale, used once, never opened!","a prank on you","a game","with love 💔","literally nothing","a prank on you","Yourself","RealLife.exe","unknown","as a bot","got kilig before thrzl lmao","Slideee by Zay Ade","with Auttaja","his teacher lol","Discord",f"on {len(self.guilds)} servers", "Among You","with Rapptz","Amidst Thee","i like ya cut g"]
-        # statusnumber = len(statuses)
-        # print(f"{str(statusnumber)} statuses.")
         while not self.is_closed():
-            # status = random.choice(statuses)
-            mc = 0
-            guilds = self.guilds
-            for i in guilds:
-                mc += i.member_count
+            mc = sum(guild.member_count for guild in self.guilds)
             await self.change_presence(
                 activity=Activity(
-                    name=f"{mc} members in {len(guilds)} guilds",
+                    name=f"{mc} members in {len(self.guilds)} guilds",
                     type=ActivityType.listening,
                 )
             )
@@ -101,4 +122,5 @@ class Atomic(Bot):
 
     def load_extension(self, name: str):
         super().load_extension(name)
-        print(f"Loaded {name}")
+        n = name.split(".")[-1].replace("_", " ")
+        print(f"| loaded {n.lower()} features")
