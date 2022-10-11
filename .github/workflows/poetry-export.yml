@@ -17,6 +17,3 @@ jobs:
       run: pip install poetry
     - name: export requirements.txt
       run: poetry export -f requirements.txt --output requirements.txt --without-hashes
-
-branding:
-  icon: clipboard
