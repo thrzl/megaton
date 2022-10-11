@@ -1,11 +1,19 @@
 from disnake.ext.commands.cog import Cog
-from colorama import Fore
 from datetime import datetime, timedelta
 import traceback as tb
 from disnake.ext.commands.slash_core import ApplicationCommandInteraction
 from humanize import naturaldelta
 from bot import Embed
-from disnake.ext.commands.errors import MissingPermissions, BotMissingPermissions, CommandNotFound, CommandOnCooldown, MissingRequiredArgument, BadArgument, CommandInvokeError, NSFWChannelRequired
+from disnake.ext.commands.errors import (
+    MissingPermissions,
+    BotMissingPermissions,
+    CommandNotFound,
+    CommandOnCooldown,
+    MissingRequiredArgument,
+    BadArgument,
+    CommandInvokeError,
+    NSFWChannelRequired,
+)
 
 
 class Error(Cog):
@@ -13,12 +21,9 @@ class Error(Cog):
         self.bot = bot
 
     @Cog.listener()
-    async def on_command(self, ctx):
+    async def on_slash_command(self, ctx):
         time = str(datetime.now())[:-10]
-        print(
-            Fore.WHITE
-            + f"[{time}] {ctx.author.name} in {ctx.guild.name} ran command: {ctx.application_name.name}"
-        )
+        print(f"[{time}] {ctx.author.name} in {ctx.guild.name} ran command: {ctx.application_command.name}")
 
     @Cog.listener()
     async def on_slash_command_error(
@@ -56,12 +61,12 @@ class Error(Cog):
             await ctx.message.add_reaction("❌")
         elif isinstance(error, CommandInvokeError):
             time = str(datetime.now())[:-10]
-            print(Fore.RED + f"[{time}] ERROR: {error.original}")
+            print(f"[{time}] ERROR: {error.original}")
             embed = Embed(
                 title="<a:dontcry:777565669738151996> **Oh no...**",
                 description="You've caused an error! The devs have been notified and will deal with the problem shortly.\n**Need extra help?** Join the [**Support Server**](https://discord.gg/bNtj2nFnYA)",
             )
-            embed.add_field(name="Error", value=f"```{error}```")
+            embed.add_field(name="error", value=f"```{error}```")
             await ctx.response.send_message(embed=embed)
             # errorc = await self.bot.fetch_channel(773162575843688497)
             # embed = Embed(
@@ -114,10 +119,7 @@ class Error(Cog):
                 description=f"The {ctx.application_command.name} command is nsfw! Please use it in an nsfw channel!",
             )
             await ctx.response.send_message(embed=embed)
-        else:
-            time = str(datetime.now())[:-10]
-            time = time[0] + time[1]
-            print(Fore.WHITE + f"[{time}] {error}")
+        raise error
 
 
 def setup(bot):
