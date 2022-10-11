@@ -2,16 +2,17 @@ from disnake.ext.commands.cog import Cog
 from disnake.ext.commands.slash_core import slash_command
 import disnake
 import sys
-from bot import Atomic, Embed
+
+from bot import Megaton, Embed
 
 
 class Bot_Info(Cog):
-    def __init__(self, bot: Atomic):
+    def __init__(self, bot: Megaton):
         self.bot = bot
 
     @slash_command(
         name="vote",
-        description="Vote for atomic and get your voter perks!",
+        description="Vote for megaton and get your voter perks!",
         usage="vote",
         aliases=["v"],
     )
@@ -39,19 +40,19 @@ class Bot_Info(Cog):
 
     @slash_command(
         name="privacypolicy",
-        description="Gives atomic's privacy policy.",
+        description="Gives megaton's privacy policy.",
         aliases=["privacy-policy", "privpolicy", "privacy_policy", "privacy"],
         usage="privacy",
     )
     async def privacy(self, ctx):
-        embed = Embed(title="atomic Privacy Policy", color=disnake.Color.green())
+        embed = Embed(title="megaton Privacy Policy", color=disnake.Color.green())
         embed.add_field(
             name="What information is stored?",
             value="Currently, very little information is stored. The only stored data is through our economy system and per-server settings, which will store your ID/Guild ID. All commands are logged with a username and guild name, neither your discriminator nor your ID be stored in this manner.",
         )
         embed.add_field(
             name="Questions or Concerns",
-            value="If you are concerned about the data stored Join the [atomic Support Server](https://discord.gg/bNtj2nFnYA) or DM [thrzl](https://thrzl.xyz)",
+            value="If you are concerned about the data stored Join the [megaton Support Server](https://discord.gg/bNtj2nFnYA) or DM [thrzl](https://thrzl.xyz)",
         )
         embed.set_footer(
             text=f"Requested by {ctx.author.name}", icon_url=ctx.author.avatar_url
@@ -59,12 +60,12 @@ class Bot_Info(Cog):
         await ctx.response.send_message(embed=embed)
 
     @slash_command(
-        name="invite", description="Get atomic's invite link!", usage="invite"
+        name="invite", description="Get megaton's invite link!", usage="invite"
     )
     async def invite(self, ctx):
         embed = Embed(
             title="Invite Link",
-            description="The invite link of atomic!",
+            description="The invite link of megaton!",
             color=disnake.Color.green(),
         )
         embed.set_thumbnail(
@@ -143,7 +144,7 @@ class Bot_Info(Cog):
             url="https://images-ext-1.discordapp.net/external/BFryzY8e6UbmufD_CPv815Np4QDxV2ryFGMxAoG6_YY/%3Fsize%3D1024/https/cdn.discordapp.com/icons/773162574752514049/6286d1102dc77a456919ef40bea8b198.webp?width=454&height=454"
         )
         embed.add_field(
-            name="atomic Support Server",
+            name="megaton Support Server",
             value="Join our [support server](https://discord.gg/bNtj2nFnYA) for assistance with the bot!",
         )
         await ctx.response.send_message("Check your DMs!")

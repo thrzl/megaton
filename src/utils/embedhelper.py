@@ -8,7 +8,7 @@ class CategoryEmbed(_Embed):
         super().__init__(color=0x2F3136, **kwargs)
         if not kwargs["title"]:
             self.set_author(
-                name=f"atomic {ctx.command.cog_name.upper()}",
+                name=f"megaton {ctx.command.cog_name.upper()}",
                 icon_url=ctx.bot.avatar_url,
             )
 

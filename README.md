@@ -1,4 +1,4 @@
-# atomic
+# megaton
 
 a wip all-in-one discord bot
 

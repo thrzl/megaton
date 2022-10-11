@@ -1,225 +1,138 @@
-from disnake.ext import commands
-import discord
+from disnake.ext.commands.core import cooldown, Cog
+from disnake.ext.commands.cooldowns import BucketType
+from disnake import Member
 from random import randint, choice
-from pymongo import MongoClient
-from disnake.ext.commands.slash_core import ApplicationCommandInteraction
+from disnake.ext.commands.slash_core import ApplicationCommandInteraction, slash_command
+from bot import Megaton, Embed
+from db import EconomyData
 
-from bot import Atomic, Embed
+from utils.data import Economy as _eco
 
 
-class Economy(commands.Cog):
-    def __init__(self, bot: Atomic):
+class Economy(Cog):
+    def __init__(self, bot: Megaton):
         self.bot = bot
-        self.db = self.bot.db["econ"]
+        self.data = _eco
 
-    @commands.command(name="rob", description="Rob a user!")
-    @commands.cooldown(1, 120, commands.BucketType.user)
-    async def rob(self, ctx: ApplicationCommandInteraction, *, member: discord.Member):
+    @slash_command(name="rob", description="rob a user!")
+    @cooldown(1, 120, BucketType.user)
+    async def rob(self, ctx: ApplicationCommandInteraction, member: Member):
         choice = randint(0, 1)
-        user = await self.db.find_one({"_id": ctx.author.id})
-        victim = await self.db.find_one({"_id": member.id})
-        if await self.db.count_documents({"_id": ctx.author.id}) == 0:
+        user = await EconomyData.get(member.id)
+        victim = await EconomyData.get(ctx.author.id)
+
+        if victim["wallet"] >= user["wallet"]:
+            high = int(user["wallet"])
+        elif victim["wallet"] < user["wallet"]:
+            high = int(victim["wallet"])
+        amt = randint(0, high)
+
+        if choice == 1:
+            await EconomyData.update_wallet(member.id, -amt)
+            await EconomyData.update_wallet(ctx.author.id, amt)
             await ctx.response.send_message(
-                f"{member.name} isn't participating in our economy system yet! If they'd like to, ask them to type `k!bal`"
+                embed=Embed(
+                    description=f"**{ctx.author.name}** just stole **{amt}** coins from **{member.name}**!"
+                ).set_author(name="robbed!")
             )
-            return
         else:
-            if victim["wallet"] > user["wallet"]:
-                high = user["wallet"]
-            elif victim["wallet"] < user["wallet"]:
-                high = victim["wallet"]
-            else:
-                high = user["wallet"]
-            high = int(high)
-            amt = randint(0, high)
-            if choice == 1:
-                wamt = amt - (amt * 2)
-                await self.db.update_one(
-                    {"_id": ctx.author.id}, {"$inc": {"wallet": amt}}
-                )
-                await self.db.update_one({"_id": member.id}, {"$inc": {"wallet": wamt}})
-                await ctx.response.send_message(
-                    f"**{ctx.author.name}** just stole **{amt}** amadola from **{member.name}**!"
-                )
-            else:
-                wamt = amt - (amt * 2)
-                await self.db.update_one(
-                    {"_id": ctx.author.id}, {"$inc": {"wallet": wamt}}
-                )
-                await ctx.response.send_message(
-                    f"**{ctx.author.name}** just tried to rob **{member.name}**, but was caught! They paid a **{amt}** amadola fine."
-                )
+            await EconomyData.update_wallet(ctx.author.id, -amt)
+            await ctx.response.send_message(
+                f"**{ctx.author.name}** just tried to rob **{member.name}**, but was caught! they paid a **{amt}** coins fine."
+            )
 
-    @commands.command(name="work", description="Work for some amadola!", usage="work")
-    @commands.cooldown(1, 360, commands.BucketType.user)
+    @slash_command(name="work", description="work for some coins!", usage="work")
+    @cooldown(1, 360, BucketType.user)
     async def work(self, ctx):
-        jobs = [
-            "exit scammer",
-            "bot dev",
-            "president",
-            "Youtuber",
-            "pro gamer",
-            "pro geimer",
-            "stonks invester",
-            "stock investor",
-            "rapper",
-            "chicken nugget",
-            "meatball",
-            "medical assisstant",
-            "doctor",
-            "fabio",
-            "fake girlfriend",
-            "bank robber",
-            "decent person",
-            "mother (**SUS!**)",
-            "cripto exchangre",
-            "crypto exchanger",
-            "Inspiration Ninja",
-            "cult leader",
-            "dollar",
-            "robber(?)",
-            "pranker",
-        ]
-        job = choice(jobs)
         money = randint(0, 3000)
-        jobmsg = f"You worked as a **{job}** and earned **{money} amadola**"
-        if await self.db.count_documents({"_id": ctx.author.id}) == 0:
-            meminfo = {"_id": ctx.author.id, "bank": 0, "wallet": 0}
-            await self.db.insert_one(meminfo)
-        user = await self.db.find_one({"_id": ctx.author.id})
-        await self.db.update_one({"_id": ctx.author.id}, {"$inc": {"wallet": money}})
-        await ctx.response.send_message(jobmsg)
+        embed = Embed(
+            description=f"you worked as a **{choice(self.data.work.jobs)}** and earned **{money} coins**"
+        ).set_author(name=choice(self.data.work.job_worked))
+        await EconomyData.update_wallet(ctx.author.id, money)
+        await ctx.response.send_message(embed=embed)
 
-    @commands.command(
+    @slash_command(
         aliases=["dep", "bank"],
         name="deposit",
-        description="Deposit some money into your bank account!",
+        description="deposit some money into your bank account!",
         usage="deposit <money>",
     )
-    @commands.cooldown(1, 600, commands.BucketType.user)
-    async def dep(self, ctx: ApplicationCommandInteraction, amt=0):
-        if amt == 0:
-            await ctx.response.send_message(
-                "You forgot to tell me how much money you wanted to deposit!"
-            )
-        try:
-            amt = int(amt)
-        except ValueError:
-            await ctx.response.send_message(
-                "You didn't give me a number! How was I supposed to work with that?"
-            )
-        if await self.db.count_documents({"_id": ctx.author.id}) == 0:
-            meminfo = {"_id": ctx.author.id, "bank": 0, "wallet": 0}
-            await self.db.insert_one(meminfo)
-        user = await self.db.find_one({"_id": ctx.author.id})
-        if (user["wallet"]) < amt:
+    @cooldown(1, 600, BucketType.user)
+    async def dep(self, ctx: ApplicationCommandInteraction, amt: int):
+        user = await EconomyData.get(ctx.author.id)
+        if (user.wallet) < amt:
             await ctx.response.send_message(
                 "You don't have enough money in your wallet for that!"
             )
         else:
-            wamt = amt - (amt * 2)
-            await self.db.update_one({"_id": ctx.author.id}, {"$inc": {"wallet": wamt}})
-            await self.db.update_one({"_id": ctx.author.id}, {"$inc": {"bank": amt}})
+            await EconomyData.deposit(ctx.author.id, amt)
             await ctx.response.send_message(
-                f"You just deposited **{amt}** amadola into your bank account!"
+                f"You just deposited **{amt}** coins into your bank account!"
             )
 
-    @commands.command(
+    @slash_command(
         name="withdraw",
-        description="Withdraw amadola from your bank account!",
+        description="withdraw coins from your bank account!",
         usage="withdraw <number>",
         aliases=["with"],
     )
-    @commands.cooldown(1, 10, commands.BucketType.user)
-    async def withdraw(self, ctx: ApplicationCommandInteraction, amt=0):
-        if amt == 0:
-            await ctx.response.send_message(
-                "You forgot to tell me how much money you wanted to deposit!"
-            )
-        try:
-            amt = int(amt)
-        except ValueError:
-            await ctx.response.send_message(
-                "You didn't give me a number! How was I supposed to work with that?"
-            )
-        if await self.db.count_documents({"_id": ctx.author.id}) == 0:
-            meminfo = {"_id": ctx.author.id, "bank": 0, "wallet": 0}
-            await self.db.insert_one(meminfo)
-        user = await self.db.find_one({"_id": ctx.author.id})
+    @cooldown(1, 10, BucketType.user)
+    async def withdraw(self, ctx: ApplicationCommandInteraction, amt: int):
+        user = await EconomyData.get(ctx.author.id)
         if (user["bank"]) < amt:
             await ctx.response.send_message(
                 "You don't have enough money in the bank for that!"
             )
         else:
-            wamt = amt - (amt * 2)
-            await self.db.update_one({"_id": ctx.author.id}, {"$inc": {"wallet": amt}})
-            await self.db.update_one({"_id": ctx.author.id}, {"$inc": {"bank": wamt}})
+            await EconomyData.withdraw(ctx.author.id, amt)
             await ctx.response.send_message(
-                f"You just withdrew **{amt}** amadola from your bank account!"
+                f"You just withdrew **{amt}** coins from your bank account!"
             )
 
-    @commands.command(name="beg", description="Beg strangers for money!", usage="beg")
-    @commands.cooldown(1, 30, commands.BucketType.user)
+    @slash_command(name="beg", description="beg strangers for money!", usage="beg")
+    @cooldown(1, 30, BucketType.user)
     async def beg(self, ctx):
         c = randint(0, 1)
-        people = [
-            "Joe Mama",
-            "Johnathan McReynolds",
-            "Leonardo DiCaprio",
-            "Your mom",
-            "PewDiePie",
-            "Tiko",
-            "peepo",
-            "pepe",
-        ]
-        messages = [
-            "you stanky",
-            "no u lmao",
-            "what you don't have a job?",
-            "I don't speak poor",
-        ]
-        donor = choice(people)
+        donor = choice(self.data.beg.people)
         if c == 1:
             guild = ctx.guild
             guild = guild.id
-            ginfo = {"_id": ctx.author.id}
-            if await self.db.count_documents(ginfo) == 0:
-                meminfo = {"_id": ctx.author.id, "bank": 0, "wallet": 0}
-                await self.db.insert_one(meminfo)
             money = randint(34, 120)
-            msg = f"**{donor}** gave {money} amadola to {ctx.author.name}!"
-            user = await self.db.find_one({"_id": ctx.author.id})
-            await self.db.update_one(
-                {"_id": ctx.author.id}, {"$inc": {"wallet": money}}
+            await EconomyData.update_wallet(ctx.author.id, money)
+            await ctx.response.send_message(
+                embed=Embed(
+                    description=f"**{donor}** just gave you **{money}** coins!"
+                ).set_author(name=choice(self.data.beg.messages))
             )
-            await ctx.response.send_message(msg)
         else:
-            m = choice(messages)
-            await ctx.response.send_message(f"{donor}: {m}")
+            await ctx.response.send_message(
+                embed=Embed(
+                    description=f"{donor}: {choice(self.data.beg.deny_messages)}"
+                ).set_author(name=donor)
+            )
 
-    @commands.command(
-        name="Balance",
-        description="Check your balance!",
+    @slash_command(
+        name="balance",
+        description="check your balance!",
         usage="balance [user]",
         aliases=["bal", "money", "cash"],
     )
-    async def balance(
-        self, ctx: ApplicationCommandInteraction, member: discord.Member = None
-    ):
+    async def balance(self, ctx: ApplicationCommandInteraction, member: Member = None):
         member = member or ctx.author
-        ginfo = {"_id": member.id}
-        if await self.db.count_documents(ginfo) == 0:
-            meminfo = {"_id": member.id, "bank": 0, "wallet": 0}
-            await self.db.insert_one(meminfo)
-        user = await self.db.find_one({"_id": member.id})
-        walletamt = user["wallet"]
-        bankamt = user["bank"]
-        embed = Embed(title=f"{member.name}'s balance")
-        embed.set_thumbnail(
-            url=member.avatar.url if member.avatar else member.default_avatar.url
+        user = await EconomyData.get(member.id)
+        walletamt = user.wallet
+        bankamt = user.bank
+        embed = (
+            Embed()
+            .set_author(
+                name=f"{member.name}'s balance", icon_url=member.display_avatar.url
+            )
+            .set_thumbnail(
+                url=member.avatar.url if member.avatar else member.default_avatar.url
+            )
         )
-        embed.add_field(name="Wallet", value=f"{walletamt} amadola")
-        embed.add_field(name="Bank", value=f"{bankamt} amadola")
+        embed.add_field(name="wallet", value=f"{walletamt} coins")
+        embed.add_field(name="bank", value=f"{bankamt} coins")
         await ctx.response.send_message(embed=embed)
 
 

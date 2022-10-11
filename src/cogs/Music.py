@@ -26,7 +26,7 @@ class queuemenu(menus.ListPageSource):
 
     @menus.button(emoji="⚛")
     async def about(self, payload):
-        embed = Embed(title="About atomic", description="stuff goes here")
+        embed = Embed(title="About megaton", description="stuff goes here")
 
     async def format_page(self, menu, entries):
         offset = menu.current_page * self.per_page
@@ -42,7 +42,7 @@ class Music(commands.Cog):
         ):  # This ensures the client isn't overwritten during cog reloads.
             bot.lavalink = lavalink.Client(bot.user.id)
             bot.lavalink.add_node(
-                "lavalink.something.host", 80, "youshallnotpass", "eu", "test-atomic"
+                "lavalink.something.host", 80, "youshallnotpass", "eu", "test-megaton"
             )  # Host, Port, Password, Region, Name
             bot.add_listener(bot.lavalink.voice_update_handler, "on_socket_response")
 

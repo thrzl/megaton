@@ -3,11 +3,12 @@ import discord
 import asyncio
 import time
 from disnake.ext.commands.converter import RoleConverter, TextChannelConverter
-from bot import Atomic, Embed
+
+Megaton, Embed
 
 
 class Config(commands.Cog):
-    def __init__(self, bot: Atomic):
+    def __init__(self, bot: Megaton):
         self.bot = bot
         self.db = bot.db["settings"]
 

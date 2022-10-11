@@ -1,7 +1,7 @@
 from typing import List
 from disnake import Member, File, Color, Message
 from disnake.ext.commands.cooldowns import BucketType
-from disnake.ext.commands.core import cooldown, check, is_nsfw
+from disnake.ext.commands.core import cooldown, is_nsfw
 from disnake.ext.commands.cog import Cog
 from disnake.ext.commands.slash_core import slash_command
 from disnake.ext.commands.slash_core import ApplicationCommandInteraction
@@ -9,7 +9,7 @@ import json
 from random import choice
 from utils import CategoryEmbed
 import ksoftapi
-from bot import Embed
+from bot import Embed, Megaton
 
 # from disnake.ext.bridge.context import ApplicationCommandInteraction
 
@@ -21,22 +21,31 @@ from asyncdagpi.image_features import ImageFeatures
 
 dc = Client("OC0VYkXzJ8yxtkm0H71x35BTJRUkcc5rNWzgGsf2qPGUrN3cATAnfDCDE24aD0Ex")
 from PIL import Image
-from colorthief import ColorThief
-import aiohttp
+from aiohttp import ClientSession
 
 
 class Fun(Cog):
-    def __init__(self, bot):
+    def __init__(self, bot: Megaton):
         self.bot = bot
-        # self.dbl = bot.dbl
         self.snipelist: List[Message] = []
+        self.http = ClientSession(loop=bot.loop)
+        self.key = os.environ["RAPIDAPI_KEY"]
 
-    def has_voted(self):
-        def predicate(ctx):
-            return self.dbl.get_user_vote(ctx.author.id)
+    async def get_animal(self, animal: str):
+        fact_res = await self.http.get(f"https://some-random-api.ml/facts/{animal}")
+        factj = await fact_res.json()
+        fact = factj["fact"]
+        img_res = await self.http.get(f"https://some-random-api.ml/img/{animal}")
+        imgj = await img_res.json()
+        img = imgj["link"]
+        return fact.lower(), img
 
-        return check(predicate)
-
+    # def has_voted(self):
+    #     def predicate(ctx):
+    #         return self.dbl.get_user_vote(ctx.author.id)
+    #
+    #     return check(predicate)
+    #
     # @slash_command(
     #     name="votecheck", description="Check if you can redeem your voter perks!"
     # )
@@ -54,26 +63,20 @@ class Fun(Cog):
         usage="dog",
     )
     async def dog(self, ctx):
-        async with aiohttp.ClientSession() as session:
-            response = await session.get("https://some-random-api.ml/facts/dog")
-            factj = await response.json()
-            fact = factj["fact"]
-            imgres = await session.get("https://some-random-api.ml/img/dog")
-            imgj = await imgres.json()
-            imgurl = imgj["link"]
-        dogtitle = [
+        fact, img = await self.get_animal("dog")
+        dogtitle = (
             "Wurf!",
             "Woof?",
             "Arf Arf!",
             "Henlo fren!",
             "Bjork",
             "*panting sounds\*",
-        ]
+        )
         dogemoji = (" 🦴", " 🐶", " 🐕", " 🐕‍🦺", " 🐾")
         title = choice(dogtitle) + choice(dogemoji)
         embed = Embed(title=title)
-        embed.set_footer(text=f"Did you know? {fact}")
-        embed.set_image(url=imgurl)
+        embed.set_footer(text=f"did you know? {fact}")
+        embed.set_image(url=img)
         await ctx.response.send_message(embed=embed)
 
     @slash_command(
@@ -83,22 +86,13 @@ class Fun(Cog):
         usage="cat",
     )
     async def cat(self, ctx):
-        async with aiohttp.ClientSession() as session:
-            async with session.get("http://some-random-api.ml/facts/cat") as response:
-                response = await response.text()
-                factj = json.loads(response)
-                fact = factj["fact"]
-        async with aiohttp.ClientSession() as session:
-            async with session.get("http://some-random-api.ml/img/cat") as response:
-                response = await response.text()
-                imgj = json.loads(response)
-                imgurl = imgj["link"]
+        fact, img = await self.get_animal("cat")
         cattitle = ("mrow!", "mrow?", "mrow...", "meow!")
         catemoji = (" 🐟", " 🐱", " 🐈", " 🐕‍", " 🥫", " 🐾", " 😼")
         title = choice(cattitle) + choice(catemoji)
         embed = Embed(title=title)
         embed.set_footer(text=f"Did you know? {fact}")
-        embed.set_image(url=imgurl)
+        embed.set_image(url=img)
         await ctx.response.send_message(embed=embed)
 
     @slash_command(
@@ -108,22 +102,13 @@ class Fun(Cog):
         usage="fox",
     )
     async def fox(self, ctx):
-        async with aiohttp.ClientSession() as session:
-            async with session.get("https://some-random-api.ml/facts/fox") as response:
-                response = await response.text()
-                factj = json.loads(response)
-                fact = factj["fact"]
-        async with aiohttp.ClientSession() as session:
-            async with session.get("https://some-random-api.ml/img/fox") as response2:
-                response2 = await response2.text()
-                imgj = json.loads(response2)
-                imgurl = imgj["link"]
+        fact, img = await self.get_animal("fox")
         foxtitle = ("...fox...sounds?", "what **does** the fox say???")
         foxemoji = (" 🕶", " 🐾", " 🦊")
         title = choice(foxtitle) + choice(foxemoji)
         embed = Embed(title=title)
         embed.set_footer(text=f"Did you know? {fact}")
-        embed.set_image(url=imgurl)
+        embed.set_image(url=img)
         await ctx.response.send_message(embed=embed)
 
     @slash_command(
@@ -133,16 +118,15 @@ class Fun(Cog):
         usage="meme",
     )
     async def meme(self, ctx):
-        async with aiohttp.ClientSession() as session:
-            async with session.get("https://meme-api.herokuapp.com/gimme") as memedata:
-                memedata = await memedata.text()
-                memej = json.loads(memedata)
-                caption = memej["title"]
-                memeurl = memej["url"]
-                title = caption
-                embed = Embed(title=title)
-                embed.set_image(url=memeurl)
-                await ctx.response.send_message(embed=embed)
+        memedata = await self.http.get("https://meme-api.herokuapp.com/gimme")
+        memedata = await memedata.text()
+        memej = json.loads(memedata)
+        caption = memej["title"]
+        memeurl = memej["url"]
+        title = caption
+        embed = Embed(title=title)
+        embed.set_image(url=memeurl)
+        await ctx.response.send_message(embed=embed)
 
     @slash_command(
         name="chat",
@@ -153,21 +137,20 @@ class Fun(Cog):
     @cooldown(1, 2, BucketType.user)
     async def chat(self, ctx: ApplicationCommandInteraction, message):
         await ctx.response.defer()
-        async with aiohttp.ClientSession() as session:
-            # if await self.dbl.get_user_vote(ctx.author.id):
-            url = "https://robomatic-ai.p.rapidapi.com/api.php"
-            payload = f"SessionID={ctx.author.id}&in={message}&op=in&cbid=1&cbot=1&ChatSource=RapidAPI&key=key"
-            headers = {
-                "content-type": "application/x-www-form-urlencoded",
-                "x-rapidapi-key": "f1bd510b4dmsha9e4705c644b59fp1f4043jsn121019a642ec",
-                "x-rapidapi-host": "robomatic-ai.p.rapidapi.com",
-            }
-            response = await session.request("POST", url, data=payload, headers=headers)
-            rej = await response.json()
-            re = rej["out"]
+        payload = f"self.httpID={ctx.author.id}&in={message}&op=in&cbid=1&cbot=1&ChatSource=RapidAPI&key=key"
+        headers = {
+            "content-type": "application/x-www-form-urlencoded",
+            "x-rapidapi-key": self.key,
+            "x-rapidapi-host": "robomatic-ai.p.rapidapi.com",
+        }
+        response = await self.http.post(
+            "https://robomatic-ai.p.rapidapi.com/api.php", data=payload, headers=headers
+        )
+        rej = await response.json()
+        re = rej["out"]
         """
         else:
-            response = await session.get(f'https://bruhapi.xyz/cb/{message}')
+            response = await self.http.get(f'https://bruhapi.xyz/cb/{message}')
             rej = await response.json()
             re = rej['res']
         """
@@ -217,10 +200,8 @@ class Fun(Cog):
             ImageFeatures.bad(),
             str(member.avatar.url if member.avatar else member.default_avatar.url),
         )
-        bad = Image.open(b)
-        bad.save(f"{member.id}bad.png")
         # b.close()
-        file = File(f"{member.id}bad.png", filename=f"{member.id}bad.png")
+        file = File(b.read(), filename=f"{member.id}bad.png")
         embed = Embed(title=f"Bad {member.name}! Bad!")
         embed.set_image(url=f"attachment://{member.id}bad.png")
         await ctx.response.send_message(embed=embed, file=file)
@@ -259,10 +240,9 @@ class Fun(Cog):
             :-10
         ]
         print(image)
-        async with aiohttp.ClientSession() as session:
-            r = await session.get(
-                f"https://some-random-api.ml/canvas/triggered?avatar={image}"
-            )
+        r = await self.http.get(
+            f"https://some-random-api.ml/canvas/triggered?avatar={image}"
+        )
         f = await aiofiles.open(f"{member.id}triggered.gif", mode="wb")
         triggeredgif = await r.read()
         if int(r.status) != 200:
@@ -458,14 +438,13 @@ class Fun(Cog):
         url = "https://rapidapi.p.rapidapi.com/getPercentage"
         querystring = {"fname": user1.display_name, "sname": user2.display_name}
         headers = {
-            "x-rapidapi-key": "f1bd510b4dmsha9e4705c644b59fp1f4043jsn121019a642ec",
+            "x-rapidapi-key": self.key,
             "x-rapidapi-host": "love-calculator.p.rapidapi.com",
         }
-        async with aiohttp.ClientSession() as session:
-            response = await session.request(
-                "GET", url, headers=headers, params=querystring
-            )
-            rej = await response.json()
+        response = await self.http.request(
+            "GET", url, headers=headers, params=querystring
+        )
+        rej = await response.json()
         percentage = rej["percentage"]
         comment = rej["result"]
         embed = Embed(
@@ -483,21 +462,13 @@ class Fun(Cog):
         usage="panda",
     )
     async def panda(self, ctx):
-        async with aiohttp.ClientSession() as session:
-            fact = await session.get("https://some-random-api.ml/facts/panda")
-            fact = await fact.text()
-            factj = json.loads(fact)
-            fact = factj["fact"]
-            img = await session.get("https://some-random-api.ml/img/panda")
-            img = await img.text()
-        imgj = json.loads(img)
-        imgurl = imgj["link"]
+        fact, img = await self.get_animal("dog")
         pandatitle = ["ee-ee-ee! ", "Grrr... ", "Skeee! "]
         pandaemoji = ["🐼", ":bamboo:"]
         title = choice(pandatitle) + choice(pandaemoji)
         embed = Embed(title=title)
         embed.set_footer(text=f"Did you know? {fact}")
-        embed.set_image(url=imgurl)
+        embed.set_image(url=img)
         await ctx.response.send_message(embed=embed)
 
     @slash_command(
@@ -507,20 +478,43 @@ class Fun(Cog):
         aliases=["ws"],
     )
     async def wordsoccer(self, ctx):
-        async with aiohttp.ClientSession() as session:
-            points = 0
-            word = await session.get("https://bruhapi.xyz/word")
-            word = await word.json()
-            word = word["res"]
+        points = 0
+        word_res = await self.http.get("https://bruhapi.xyz/word")
+        word = await word.json()
+        word = word["res"]
+        await ctx.response.send_message(
+            f"A word soccer game has been started by {ctx.author.mention}! To play, you have to send a word that begins with the last letter of the previous word! Example: `apple` -> `elephant` -> `towel` -> `lion`\nThe rules of this game are:\n**1. No back to backing!** Meaning that you can only send one word in a row!\n**2-Only one-word messages!** You can't send two words in one message!\nThat's about it for the instructions! Let's **PLAY**!\nYour starting word is: {word}"
+        )
+
+        def check(m):
+            return m.channel == ctx.channel
+
+        msg = await self.bot.wait_for("message", check=check)
+        if msg.content[0] != word[-1]:
+            if msg.content.startswith("k!end"):
+                if (
+                    msg.author == ctx.author
+                    or msg.author.guild_permissions.kick_members == True
+                ):
+                    await ctx.response.send_message(
+                        f"The game was ended by {msg.author.mention}."
+                    )
+                    return
             await ctx.response.send_message(
-                f"A word soccer game has been started by {ctx.author.mention}! To play, you have to send a word that begins with the last letter of the previous word! Example: `apple` -> `elephant` -> `towel` -> `lion`\nThe rules of this game are:\n**1. No back to backing!** Meaning that you can only send one word in a row!\n**2-Only one-word messages!** You can't send two words in one message!\nThat's about it for the instructions! Let's **PLAY**!\nYour starting word is: {word}"
+                f"{msg.author.mention} ruined it! The game has ended! You had a total of {points} points!"
             )
+            return
+        else:
+            await msg.add_reaction("✅")
+            points += 1
+            msg1 = msg
+        while True:
 
             def check(m):
-                return m.channel == ctx.channel
+                return m.channel == ctx.channel and msg.author != msg1.author
 
             msg = await self.bot.wait_for("message", check=check)
-            if msg.content[0] != word[-1]:
+            if msg.content[0] != msg1.content[-1]:
                 if msg.content.startswith("k!end"):
                     if (
                         msg.author == ctx.author
@@ -538,30 +532,6 @@ class Fun(Cog):
                 await msg.add_reaction("✅")
                 points += 1
                 msg1 = msg
-            while True:
-
-                def check(m):
-                    return m.channel == ctx.channel and msg.author != msg1.author
-
-                msg = await self.bot.wait_for("message", check=check)
-                if msg.content[0] != msg1.content[-1]:
-                    if msg.content.startswith("k!end"):
-                        if (
-                            msg.author == ctx.author
-                            or msg.author.guild_permissions.kick_members == True
-                        ):
-                            await ctx.response.send_message(
-                                f"The game was ended by {msg.author.mention}."
-                            )
-                            return
-                    await ctx.response.send_message(
-                        f"{msg.author.mention} ruined it! The game has ended! You had a total of {points} points!"
-                    )
-                    return
-                else:
-                    await msg.add_reaction("✅")
-                    points += 1
-                    msg1 = msg
 
     @slash_command(
         name="urban",
@@ -572,36 +542,34 @@ class Fun(Cog):
     @is_nsfw()
     async def urban(self, ctx: ApplicationCommandInteraction, word):
         await ctx.response.defer()
-        async with aiohttp.ClientSession() as session:
-            querystring = {"term": word}
-            headers = {
-                "x-rapidapi-key": "f1bd510b4dmsha9e4705c644b59fp1f4043jsn121019a642ec",
-                "x-rapidapi-host": "mashape-community-urban-dictionary.p.rapidapi.com",
-            }
-            url = "https://mashape-community-urban-dictionary.p.rapidapi.com/define"
-            response = await session.request(
-                "GET", url, headers=headers, params=querystring
-            )
-            matches = await response.json()
-            matches = matches["list"]
-            match = matches[0]
-            definition = match["definition"]
-            link = match["permalink"]
-            author = match["author"]
-            up = match["thumbs_up"]
-            down = match["thumbs_down"]
-            embed = Embed(
-                title=f"{word}",
-                description=definition,
-                color=ctx.author.color,
-                url=link,
-            )
-            embed.set_author(name=f"By {author}")
-            embed.set_footer(
-                text=f"Requested by {ctx.author.name} • 👍 {up} | 👎 {down}",
-                icon_url=ctx.author.avatar_url,
-            )
-            await ctx.response.send_message(embed=embed)
+        querystring = {"term": word}
+        headers = {
+            "x-rapidapi-key": self.key,
+            "x-rapidapi-host": "mashape-community-urban-dictionary.p.rapidapi.com",
+        }
+        url = "https://mashape-community-urban-dictionary.p.rapidapi.com/define"
+        response = await self.http.request(
+            "GET", url, headers=headers, params=querystring
+        )
+        matches = await response.json()
+        match = matches["list"][0]
+        definition = match["definition"]
+        link = match["permalink"]
+        author = match["author"]
+        up = match["thumbs_up"]
+        down = match["thumbs_down"]
+        embed = Embed(
+            title=f"{word}",
+            description=definition,
+            color=ctx.author.color,
+            url=link,
+        )
+        embed.set_author(name=f"By {author}")
+        embed.set_footer(
+            text=f"Requested by {ctx.author.name} • 👍 {up} | 👎 {down}",
+            icon_url=ctx.author.avatar_url,
+        )
+        await ctx.response.send_message(embed=embed)
 
     @slash_command(
         name="birb",
@@ -610,26 +578,19 @@ class Fun(Cog):
         usage="bird",
     )
     async def bird(self, ctx):
-        async with aiohttp.ClientSession() as session:
-            fact = await session.get("https://some-random-api.ml/facts/bird")
-            fact = await fact.text()
-            factj = json.loads(fact)
-            fact = factj["fact"]
-            img = await session.get("https://some-random-api.ml/img/birb")
-            imgj = await img.json()
-        imgurl = imgj["link"]
-        birdtitle = [
+        fact, img = await self.get_animal("bird")
+        birdtitle = (
             "Tweet! ",
             "Tweet Tweet? ",
             "Caw, Caw! ",
             "Kakaw! ",
             "Chirp Chirp! ",
-        ]
+        )
         birdemoji = ["🐦", "🐤", "🐣", "🐥", "🦃", "🦚", "🦜", "🦢", "🕊", "🦉", "🦆", "🦅"]
         title = choice(birdtitle) + choice(birdemoji)
         embed = Embed(title=title)
-        embed.set_footer(text=f"Did you know? {fact}")
-        embed.set_image(url=imgurl)
+        embed.set_footer(text=f"did you know? {fact}")
+        embed.set_image(url=img)
         await ctx.response.send_message(embed=embed)
 
 

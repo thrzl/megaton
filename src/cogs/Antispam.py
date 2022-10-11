@@ -21,7 +21,7 @@ class Antispam(commands.Cog):
             if retry_after:
                 await message.delete()
                 embed = Embed(
-                    title="atomic Moderation 🛡",
+                    title="megaton Moderation 🛡",
                     description=f"You've been warned in **{message.guild.name}** for spamming.",
                     color=discord.Color.green(),
                 )

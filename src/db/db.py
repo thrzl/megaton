@@ -6,34 +6,37 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy import BigInteger, Integer, Column
 from os import environ
 from typing import Optional
-from cachetools import TTLCache
+from cachetools import LRUCache, TTLCache
 
 Base = declarative_base()
 engine = create_async_engine(url=environ["DB_URL"])
 session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+
 
 class Serializable:
     def serialize(self):
         return {c.name: getattr(self, c.name) for c in self.__table__.columns}
 
     @classmethod
-    def deserialize(self, data: dict):
+    def from_data(self, data: dict):
         return self(**data)
+
 
 class EconomyData(Base, Serializable):  # type: ignore
     __tablename__ = "economy"
     id = Column(BigInteger, autoincrement=True, primary_key=True)
     wallet = Column(Integer, nullable=False, default=0)
     bank = Column(Integer, nullable=False, default=0)
-    cache: TTLCache[int, bytes] = TTLCache(maxsize=100, ttl=60)
+    cache: LRUCache[int, dict] = LRUCache(maxsize=1024)
 
     @classmethod
     async def update_wallet(cls, item_id: int, wallet_amount: int) -> None:
-        r = await cls.get(item_id)
+        eco = await cls.get(item_id)
         async with session() as s:
-            r.wallet += wallet_amount
+            eco.wallet += wallet_amount
+            s.add(eco)
             await s.commit()
-            cls.cache[item_id] = r.serialize()
+        cls.cache[item_id] = eco.serialize()
 
     @classmethod
     async def get(cls, item_id: int) -> EconomyData:
@@ -43,7 +46,7 @@ class EconomyData(Base, Serializable):  # type: ignore
         async with session() as s:
             results = await s.execute(query)
             if not (result := results.first()):
-                d = EconomyData(id=item_id, wallet=0, bank=0, bank_capacity=20000)
+                d = EconomyData(id=item_id, wallet=0, bank=0)
                 s.add(d)
                 await s.commit()
                 cls.cache[item_id] = d.serialize()
@@ -90,7 +93,7 @@ class GuildSettings(Base, Serializable):  # type: ignore
     logging = Column(BigInteger, nullable=True)
     welcoming = Column(BigInteger, nullable=True)
     autorole = Column(BigInteger, nullable=True)
-    cache: TTLCache[int, bytes] = TTLCache(maxsize=100, ttl=60)
+    cache: TTLCache[int, dict] = TTLCache(maxsize=1024, ttl=300)
 
     @classmethod
     async def update_leveling_channel(cls, guild_id: int, channel_id: int):

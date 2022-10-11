@@ -1,7 +1,9 @@
+from ast import Bytes
 from disnake.ext import commands
 from disnake.ext.commands import slash_command
 from disnake import Member, Color, Asset, PartialEmoji
 from datetime import date, timedelta, datetime
+from disnake.enums import UserFlags
 import os
 import random
 import aiohttp
@@ -11,7 +13,12 @@ from colorthief import ColorThief
 import json
 import asyncio
 from disnake.ext.commands.slash_core import ApplicationCommandInteraction
-from bot import Embed
+from bot import Embed, Megaton
+from io import BytesIO
+
+from utils.data import Error
+
+from cachetools import LRUCache
 
 
 async def get_color(img):
@@ -21,8 +28,9 @@ async def get_color(img):
 
 
 class Utility(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot: Megaton):
         self.bot = bot
+        self.pokemon_cache = LRUCache(maxsize=1024)
 
     @slash_command(
         name="translate",
@@ -37,7 +45,7 @@ class Utility(commands.Cog):
             rej = await response.json()
             text = rej["text"]
             lang = rej["lang"]
-            embed = Embed(title=f":flag_{lang}: Translation:", description=text)
+            embed = Embed(title=f":flag_{lang}: translation:", description=text)
             embed.set_author(name=ctx.author.name, icon_url=ctx.author.avatar.url)
             await ctx.send(embed=embed)
 
@@ -48,22 +56,18 @@ class Utility(commands.Cog):
         usage="invite",
     )
     async def server(self, ctx: ApplicationCommandInteraction):
-        await ctx.response.defer()
-        url = ctx.guild.icon
-        await url.save(f"{ctx.guild.id}av.png", seek_begin=True)
-        clr = ", ".join(await get_color(f"{ctx.guild.id}av.png"))
-        os.remove(f"{ctx.guild.id}av.png")
+        clr = ", ".join(await get_color(BytesIO(await ctx.guild.icon.read())))
         red, blue, green = [int(c) for c in clr]
         color = Color.from_rgb(red, green, blue)
         tcount = len(ctx.guild.text_channels)
         vcount = len(ctx.guild.voice_channels)
         rcount = len(ctx.guild.roles)
-        embed = Embed(title=ctx.guild.name + " Server Information", color=color)
+        embed = Embed(color=color).set_author(name=ctx.guild.name)
         embed.set_thumbnail(url=ctx.guild.icon)
         embed.add_field(name="Owner", value=ctx.guild.owner, inline=True)
-        embed.add_field(name="Server ID", value=id, inline=True)
+        embed.add_field(name="Server ID", value=ctx.guild.id, inline=True)
         embed.add_field(
-            name="Region <a:greyscaleearth:777565668442374245>",
+            name="<a:greyscaleearth:777565668442374245> region",
             value=ctx.guild.region,
             inline=True,
         )
@@ -256,88 +260,54 @@ class Utility(commands.Cog):
         aliases=["pk", "pdx", "pd", "pokemon"],
     )
     async def pokemon(self, ctx: ApplicationCommandInteraction, *, pokemon):
-        async with aiohttp.ClientSession() as session:
-            response = await session.get(
-                f"https://some-random-api.ml/pokedex?pokemon={pokemon}"
-            )
-            if str(response.status) == "404":
-                await ctx.send("I couldn't find that pokemon. Please try again.")
-            else:
+        if pokemon in self.pokemon_cache:
+            rj = self.pokemon_cache[pokemon]
+        else:
+            async with aiohttp.ClientSession() as session:
+                response = await session.get(
+                    f"https://some-random-api.ml/pokedex?pokemon={pokemon}"
+                )
+                if str(response.status) == "404":
+                    return await ctx.send("I couldn't find that pokemon. Please try again.")
                 rj = await response.json()
-                name = (rj["name"]).capitalize()
-                pid = rj["id"]
-                ptype = rj["type"]
-                desc = rj["description"]
-                species = rj["species"]
-                stats = rj["stats"]
-                evolfam = rj["family"]
-                evs = evolfam["evolutionLine"]
-                evs = str(evs)
-                evs = evs.replace("'", "")
-                evs = evs.replace("]", "")
-                evs = evs.replace("[", "")
-                hp = stats["hp"]
-                attack = stats["attack"]
-                defense = stats["defense"]
-                speed = stats["speed"]
-                spattack = stats["sp_atk"]
-                spdef = stats["sp_def"]
-                abilities = rj["abilities"]
-                abilities = str(abilities)
-                abilities = abilities.replace("'", "")
-                abilities = abilities.replace("[", "")
-                abilities = abilities.replace("]", "")
-                weight = rj["weight"]
-                height = rj["height"]
-                weight = weight.replace("\xa0", " ")
-                height = height.replace("\xa0", " ")
-                species = str(species)
-                species = species.replace("'", "")
-                species = species.replace("[", "")
-                species = species.replace("]", "")
-                species = species.replace(",", "")
-                ptype = str(ptype)
-                ptype = ptype.replace("'", "")
-                ptype = ptype.replace("[", "")
-                ptype = ptype.replace("]", "")
-                imgs = rj["sprites"]
-                if int(rj["generation"]) < 6:
-                    img = imgs["animated"]
-                else:
-                    img = imgs["normal"]
-                url = imgs["normal"]
-                try:
-                    f = await aiofiles.open(f"{pokemon}av.png", mode="wb")
-                    idx = await session.get(url)
-                    data = await idx.read()
-                    await f.write(data)
-                    await f.close()
-                    # await url.save(f'{pokemon}av.png',seek_begin = True)
-                    clr = await get_color(f"{pokemon}av.png")
-                    os.remove(f"{pokemon}av.png")
-                    clr = str(clr).replace("(", "")
-                    clr = str(clr).replace(")", "")
-                    clr = clr.split(", ")
-                    red = int(clr[0])
-                    blue = int(clr[2])
-                    green = int(clr[1])
-                    color = Color.from_rgb(red, green, blue)
-                    embed = Embed(title=name, description=desc, color=color)
-                except:
-                    embed = Embed(title=name, description=desc)
-                embed.set_image(url=img)
-                embed.add_field(
-                    name="Information",
-                    value=f"ID: {pid}\nThe {species}\nFirst introduced in generation {(rj['generation'])}\nType(s): {ptype}\nHeight: {height}\nWeight: {weight}\nAbilities: {abilities}",
-                    inline=False,
-                )
-                embed.add_field(
-                    name="Base Stats",
-                    value=f"HP: {hp}\nDefense: {defense}\nSpeed: {speed}\nAttack: {attack}\nSpecial Attack: {spattack}\nSpecial Defense: {spdef}",
-                )
-                if len(evs) != 0:
-                    embed.add_field(name="Evolution Line", value=evs, inline=False)
-                await ctx.send(embed=embed)
+                self.pokemon_cache[pokemon] = rj
+        name = (rj["name"]).capitalize()
+        pid = rj["id"]
+        ptype = rj["type"]
+        desc = rj["description"]
+        species = rj["species"]
+        stats = rj["stats"]
+        evolfam = rj["family"]
+        evs = ", ".join(evolfam["evolutionLine"])
+        hp = stats["hp"]
+        attack = stats["attack"]
+        defense = stats["defense"]
+        speed = stats["speed"]
+        spattack = stats["sp_atk"]
+        spdef = stats["sp_def"]
+        abilities = ", ".join(rj["abilities"])
+        weight = rj["weight"]
+        height = rj["height"]
+        weight = weight.replace("\xa0", " ")
+        height = height.replace("\xa0", " ")
+        species = " ".join(rj["species"])
+        ptype = ", ".join(rj["type"])
+        imgs: dict = rj["sprites"]
+        img = imgs["animated"] if "animated" in imgs.keys() else imgs["normal"]
+        embed = Embed(title=name, description=desc)
+        embed.set_thumbnail(url=img)
+        embed.add_field(
+            name="information",
+            value=f"gen {(rj['generation'])}\nID: {pid}\nThe {species}\nType(s): {ptype}\nHeight: {height}\nWeight: {weight}\nAbilities: {abilities}",
+            inline=False,
+        )
+        embed.add_field(
+            name="Base Stats",
+            value=f"HP: {hp}\nDefense: {defense}\nSpeed: {speed}\nAttack: {attack}\nSpecial Attack: {spattack}\nSpecial Defense: {spdef}",
+        )
+        if len(evs) != 0:
+            embed.add_field(name="Evolution Line", value=evs, inline=False)
+        await ctx.send(embed=embed)
 
     @commands.Cog.listener()
     async def on_message(self, message):
@@ -367,35 +337,22 @@ class Utility(commands.Cog):
 
     @slash_command(
         name="remind",
-        description="Sets a reminder",
-        case_insensitive=True,
-        aliases=["remindme", "remind_me"],
+        description="sets a reminder",
     )
     async def reminder(self, ctx: ApplicationCommandInteraction, time, *, reminder):
-        user = ctx.message.author
-        embed = Embed(color=0x55A7F7, timestamp=datetime.utcnow())
+        cur_time = datetime.now().strftime("%s")
+        embed = Embed(color=0x55A7F7)
         seconds = 0
         if reminder is None:
-            embed.add_field(
-                name="Warning",
-                value="Please specify what do you want me to remind you about.",
-            )  # Error message
-        if time.lower().endswith("d"):
-            seconds += int(time[:-1]) * 60 * 60 * 24
-            counter = f"{seconds // 60 // 60 // 24} days"
-        if time.lower().endswith("h"):
-            seconds += int(time[:-1]) * 60 * 60
-            counter = f"{seconds // 60 // 60} hours"
-        elif time.lower().endswith("m"):
-            seconds += int(time[:-1]) * 60
-            counter = f"{seconds // 60} minutes"
-        elif time.lower().endswith("s"):
-            seconds += int(time[:-1])
-            counter = f"{seconds} seconds"
+            embed.set_author(name=random.choice(Error.blurbs))
+            embed.description="please specify what do you want me to remind you about.",
+            return await ctx.send(embed=embed)
+        seconds, remindtime = self.bot.calculate_time(time)
+        counter = remindtime.strftime("%s")
         if seconds == 0:
             embed.add_field(
                 name="Warning",
-                value="Please specify a proper duration. Example: `10d`, `5m`, etc send `reminder_help` for more information.",
+                value="Please specify a proper duration. Example: `10d`, `5m`, etc.",
             )
         elif seconds > 7776000:
             embed.add_field(
@@ -403,33 +360,29 @@ class Utility(commands.Cog):
                 value="You have specified a too long duration!\nMaximum duration is 90 days.",
             )
         else:
-            await ctx.message.add_reaction("⏱")
-            await ctx.send(f"Alright, I will remind you about {reminder} in {counter}.")
+            await ctx.send(embed=Embed(description=f"i will remind you about {reminder} <t:{counter}:R>."))
             await asyncio.sleep(seconds)
             await ctx.author.send(
-                f"Hi, you asked me to remind you about {reminder} {counter} ago."
+                f"Hi, you asked me to remind you about {reminder} <t:{cur_time}:R>."
             )
             return
         await ctx.send(embed=embed)
 
-    @slash_command(name="stats", description="Gives you bot stats!", usage="stats")
+    @slash_command(name="stats", description="see our stats!", usage="stats")
     @commands.cooldown(1, 30, commands.BucketType.user)
     async def stats(self, ctx):
         async with aiohttp.ClientSession() as session:
             r = await session.get("https://api.statcord.com/v3/766818911505088514")
-        data = await r.text()
-        data = json.loads(data)
+        data = await r.json()
         pdata = data["data"]
         for d in pdata:
             usercount = d["users"]
             cpu = d["cpuload"]
-        embed = Embed(
-            title="atomic Stats",
-            description="My official stats!",
-        )
+        embed = Embed().set_author(name="megaton stats", icon_url=self.bot.user.avatar.url)
         embed.add_field(name="Server Count", value=len(self.bot.guilds))
         embed.add_field(name="User Count", value=f"{usercount}")
         embed.add_field(name="CPU Load", value=f"{cpu}%")
+        embed.set_thumbnail(url=self.bot.user.avatar.url)
         embed.set_footer(
             icon_url="https://cdn.statcord.com/logo.png", text=f"Powered by Statcord"
         )
@@ -443,51 +396,35 @@ class Utility(commands.Cog):
     )
     async def whois(self, ctx: ApplicationCommandInteraction, *, member: Member = None):
         m: Member = member or ctx.author
-        await ctx.response.defer()
-        url: Asset = m.avatar
-        await url.save(f"{m.id}av.png", seek_begin=True)
-        clr = await get_color(f"{m.id}av.png")
-        os.remove(f"{m.id}av.png")
-        clr = str(clr).replace("(", "")
-        clr = str(clr).replace(")", "")
-        clr = clr.split(", ")
-        red = int(clr[0])
-        blue = int(clr[2])
-        green = int(clr[1])
+        url: Asset = m.display_avatar
+        clr = await get_color(BytesIO(await url.read()))
+        red, blue, green = (int(c) for c in clr)
         color = Color.from_rgb(red, green, blue)
-        flags = m.public_flags
-        flagsstr = ""
-        if flags.staff:
-            flagsstr = flagsstr + " <:staff:787444950974988288>"
-        if flags.hypesquad:
-            flagsstr = flagsstr + " <:hypeevents:787445731782688779>"
-        if flags.early_supporter:
-            flagsstr = flagsstr + " <:earlysupporter:787446049102102559>"
-        if flags.bug_hunter or flags.bug_hunter_level_2:
-            flagsstr = flagsstr + " <:bughunter:787446945098367046>"
-        if flags.hypesquad_brilliance:
-            flagsstr = flagsstr + " <:brilliance:786217607065108481>"
-        if flags.hypesquad_bravery:
-            flagsstr = flagsstr + " <:bravery:786217999802957835>"
-        if flags.hypesquad_balance:
-            flagsstr = flagsstr + " <:balance:786217943900880916>"
-        if flags.verified_bot_developer:
-            flagsstr = flagsstr + " <:verifiedbotdev:787449074994380821>"
-        if flagsstr != "":
-            embed = Embed(title=m.name, description=flagsstr, color=color)
-        else:
-            embed = Embed(title=m.name, description=flagsstr, color=color)
-        embed.set_thumbnail(url=m.avatar.url)
-        embed.add_field(name="ID", value=m.id, inline=True)
-        embed.add_field(name="Created on: ", value=m.created_at.date(), inline=True)
-        embed.add_field(name="Joined on: ", value=m.joined_at.date(), inline=True)
-        embed.add_field(name="Highest Role", value=m.top_role.mention, inline=True)
+        fs = {
+            "staff": "<:staff:787444950974988288>",
+            "hypesquad": "<:hypeevents:787445731782688779>",
+            "early_supporter": "<:earlysupporter:787446049102102559>",
+            "bug_hunter": "<:bughunter:787446945098367046>",
+            "bug_hunter_level_2": "<:bughunter:787446945098367046>",
+            "hypesquad_brilliance": "<:brilliance:786217607065108481>",
+            "hypesquad_bravery": "<:bravery:786217999802957835>",
+            "hypesquad_balance": "<:balance:786217943900880916>",
+            "verified_bot_developer": "<:verifiedbotdev:787449074994380821>",
+        }
+        user_flags = [fs[str(flag).split(".")[1]] for flag in m.public_flags.all()]
+        embed = Embed(description=" ".join(user_flags), color=color, preserve_case=True).set_author(name=m, icon_url=m.display_avatar)
+        embed.set_thumbnail(url=m.display_avatar.url)
+        joined_date = m.joined_at.date().strftime("%s")
+        created_date = m.created_at.date().strftime("%s")
+        embed.add_field(name="id", value=m.id, inline=False)
+        embed.add_field(name="created: ", value=f"<t:{created_date}:R>")
+        embed.add_field(name="joined: ", value=f"<t:{joined_date}:R>", inline=False)
+        embed.add_field(name="Highest Role", value=m.top_role.mention)
         roles = [role.mention for role in m.roles if role.name != "@everyone"]
         roles.reverse()
-        ", ".join(roles)
-        embed.add_field(name="Roles", value=roles, inline=True)
+        embed.add_field(name="Roles", value=", ".join(roles))
         embed.set_footer(
-            icon_url=ctx.author.avatar.url, text=f"Requested by {ctx.author.name}"
+            icon_url=ctx.author.avatar.url, text=f"requested by {ctx.author.name}"
         )
         await ctx.send(embed=embed)
 
@@ -497,18 +434,17 @@ class Utility(commands.Cog):
         usage="pip <package>",
         aliases=["pypi", "pypa"],
     )
-    async def pip(self, ctx: ApplicationCommandInteraction, *, package):
+    async def pip(self, ctx: ApplicationCommandInteraction, package: str):
         datal = ["author", "description", "downloads", "home_page", "name", "summary"]
         async with aiohttp.ClientSession() as session:
-            package = str(package).lower()
+            package = package.lower()
             package = package.replace(" ", "-")
             r = await session.get(f"https://pypi.org/pypi/{package}/json")
             if str(r.status) == "404":
                 embed = Embed(
-                    title="Package not found...",
-                    description="Make sure that you use full package names and that you are asking about a valid package!",
-                    color=Color.red(),
-                )
+                    title="package not found...",
+                    description="make sure that you use full package names and that you are asking about a valid package!",
+                ).set_author(name=random.choice(Error.blurbs))
                 await ctx.send(embed=embed)
             else:
                 data = await r.json()
@@ -516,7 +452,7 @@ class Utility(commands.Cog):
                 author = pkginfo["author"]
                 downloads = pkginfo["downloads"]
                 lic = pkginfo["license"]
-                url = pkginfo["project_url"]
+                url = pkginfo["home_page"]
                 name = pkginfo["name"]
                 summary = pkginfo["summary"]
                 ver = pkginfo["version"]
@@ -532,20 +468,16 @@ class Utility(commands.Cog):
                     url=url,
                 )
                 embed.set_thumbnail(
-                    url="https://pypi.org/static/images/logo-small.6eef541e.svg"
+                    url="https://pypi.org/static/images/logo-small.95de8436.svg"
                 )
-                t = await session.get(f"https://pypi.org/user/{author}/")
-                if int(t.status) != 404:
-                    embed.set_author(
-                        name=f"Created by {author}",
-                        url=f"https://pypi.org/user/{author}/",
-                    )
-                else:
-                    embed.set_author(name=f"Created by {author}")
-                embed.add_field(name="Latest Version", value=ver)
-                embed.add_field(name="Requirements", value=req)
-                if lic != "":
-                    embed.add_field(name="License", value=lic)
+                embed.set_author(
+                    name=f"created by {author}",
+                    url=f"https://pypi.org/user/{author}/",
+                )
+                embed.add_field(name="latest version", value=ver)
+                embed.add_field(name="requirements", value=req)
+                if lic:
+                    embed.add_field(name="license", value=lic)
                 await ctx.send(embed=embed)
 
     @slash_command(

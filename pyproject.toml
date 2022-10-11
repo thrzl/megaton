@@ -1,17 +1,13 @@
 [tool.poetry]
-name = "atomic"
+name = "megaton"
 version = "0.1.0"
 description = ""
 authors = ["thrzl <thrizzle@skiff.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.8"
-py-cord = "^2.1.3"
-pyfiglet = "^0.8.post1"
-colorama = "^0.4.5"
 colorthief = "^0.2.1"
 Pillow = "^9.2.0"
-motor = "^3.0.0"
 ksoftapi = "^0.4.1"
 jishaku = "^2.5.1"
 dnspython = "^2.2.1"
@@ -22,12 +18,14 @@ humanize = "^4.4.0"
 SQLAlchemy = "^1.4.41"
 asyncpg = "^0.26.0"
 "betterstatcord.py" = "^3.5.0"
+cachetools = "^5.2.0"
 
 [tool.poetry.dev-dependencies]
 bandit = "^1.7.4"
 black = "^22.8.0"
 mypy = "^0.981"
 types-aiofiles = "^22.1.0"
+types-cachetools = "^5.2.1"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

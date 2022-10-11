@@ -7,10 +7,6 @@ from disnake.ext.forms import ReactionMenu
 from dpymenus import Page, PaginatedMenu
 
 
-async def get_prefix(ctx):
-    return "a!"
-
-
 hidden = ["Help", "Error", "Welcome", "stat", "Bot Owner", "Jishaku", "TopGG"]
 
 
@@ -70,7 +66,7 @@ class Help(commands.Cog, name="Help"):
         p = await get_prefix(ctx)
         if command == "none":
             embed = Embed(
-                title="atomic Help",
+                title="megaton Help",
                 description=f"**⚠ I do not have the `MANAGE_MESSAGES` permission in this server. Many features are reliant on this, so please give me this ability! ⚠**\nMy prefix for this server: `{p}`\n`<arg>` is required\n`[arg]` is optional",
                 color=discord.Color.green(),
             )
@@ -234,7 +230,7 @@ class Help(commands.Cog, name="Help"):
         elist = []
         if command == "none":
             embed = Embed(
-                title="atomic Help",
+                title="megaton Help",
                 description=f"My prefix for this server: `{p}`\n`<arg>` is required\n`[arg]` is optional",
                 color=discord.Color.green(),
             )
@@ -247,7 +243,7 @@ class Help(commands.Cog, name="Help"):
                 if c.qualified_name not in hidden and c.get_commands():
                     cogname = c.qualified_name.replace("_", " ")
 
-                    embed = Embed(title="atomic Help", color=discord.Color.green())
+                    embed = Embed(title="megaton Help", color=discord.Color.green())
                     cmds = c.get_commands()
 
                     for d in cmds:
