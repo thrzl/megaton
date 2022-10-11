@@ -1,80 +1,49 @@
-print("Importing Modules...")
-from disnake import Message, Activity, ActivityType
-from pyfiglet import Figlet
+from disnake import Message
 from os import environ
 
-f = Figlet(font="alligator")
-from colorama import Fore
-
-# import dbl as dblpy
 import sys
-from datetime import datetime
 from logging import getLogger, INFO, StreamHandler, Formatter
-from asyncio import sleep
 
-from bot import Atomic
+from bot import Megaton
 
-print("Initializing Logger...")
 logger = getLogger("discord")
 logger.setLevel(INFO)
 handler = StreamHandler(sys.stdout)
 handler.setFormatter(Formatter(f"%(asctime)s:%(levelname)s:%(name)s: %(message)s"))
-handler.setFormatter(Formatter(f"[{str(datetime.now())[:-10]}] %(name)s: %(message)s"))
+# handler.setFormatter(Formatter(f"[{str(datetime.now())[:-10]}] %(name)s: %(message)s"))
 logger.addHandler(handler)
 
-client = Atomic(
+client = Megaton(
     token=environ["TOKEN"],
 )
 
 
-print(Fore.BLUE + f"{f.renderText('atomic')}")
-
-
 @client.event
 async def on_ready():
-    print(Fore.BLUE + f"> signed in as {client.user.name} [{client.user.id}]")
-    print(Fore.BLUE + f"> can see {len(client.guilds)} servers")
-    print(
-        Fore.BLUE
-        + f"> loaded {len(client.slash_commands)} commands in {len(client.cogs)} cogs"
-    )
-
-    settings = client.db["settings"]
-    for g in client.guilds:
-        if await settings.count_documents({"_id": g.id}) == 0:
-            await settings.insert_one(
-                {
-                    "_id": g.id,
-                    "leveling": False,
-                    "logging": False,
-                    "welcoming": False,
-                    "autorole": False,
-                }
-            )
-
-    print(Fore.WHITE + f"[{str(datetime.now())[:-10]}] db is good")
+    print(f"| signed in as {client.user.name} [{client.user.id}]")
+    print(f"| can see {len(client.guilds)} servers")
+    print(f"| loaded {len(client.slash_commands)} commands in {len(client.cogs)} cogs")
 
 
 @client.event
 async def on_message(message: Message):
-    if message.author.bot:
+    if message.author.bot or message.author.id not in client.owner_ids:
         return
-    if message.content == "reload":
-        c = [i for i in client.cogs]
-        for i in c:
-            client.reload_extension(f"cogs.{i}")
-        await message.add_reaction("✅")
-        return
-    elif message.content.startswith("load"):
-        c = [i for i in message.content.split(" ")[1:]]
-        for i in c:
-            try:
-                client.load_extension(f"cogs.{i}")
-            except Exception as e:
-                print(e)
-        await message.add_reaction("✅")
-        return
-    await client.process_commands(message)
+    if message.content.startswith(client.user.mention):
+        if "reload" in message.content:
+            c = [i for i in client.cogs]
+            for i in c:
+                client.reload_extension(f"cogs.{i}")
+            await message.add_reaction("✅")
+        elif message.content.startswith("load"):
+            c = [i for i in message.content.split(" ")[1:]]
+            for i in c:
+                try:
+                    client.load_extension(f"cogs.{i}")
+                except Exception as e:
+                    print(e)
+            await message.add_reaction("✅")
+    return
 
 
 # client.load_extension("jishaku")
