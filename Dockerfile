@@ -1,11 +1,11 @@
 FROM debian:11-slim AS build
-RUN apt-get update && \
-  apt-get install --no-install-suggests --no-install-recommends --yes python3-venv gcc libpython3-dev && \
-  apt-get clean && \
-  rm -rf /var/lib/apt/lists/* && \
-  python3 -m venv /venv && \
-  /venv/bin/pip install --upgrade pip setuptools wheel && \
-  /venv/bin/pip install poetry
+RUN apt-get update
+RUN apt-get install --no-install-suggests --no-install-recommends --yes python3-venv gcc libpython3-dev
+RUN apt-get clean
+RUN rm -rf /var/lib/apt/lists/*
+RUN python3 -m venv /venv 
+RUN /venv/bin/pip install --upgrade pip setuptools wheel
+RUN /venv/bin/pip install poetry
 
 FROM build AS build-venv
 COPY pyproject.toml poetry.lock /
