@@ -7,6 +7,7 @@ from enum import Enum
 from os import environ
 from asyncio import sleep
 from statcord import StatcordClient
+from humanize import intword
 
 
 class FalseVaccum(Exception):
@@ -113,7 +114,7 @@ class Megaton(InteractionBot):
             mc = sum(guild.member_count for guild in self.guilds)
             await self.change_presence(
                 activity=Activity(
-                    name=f"{mc} members in {len(self.guilds)} guilds",
+                    name=f"{intword(mc)} members in {len(self.guilds)} guilds",
                     type=ActivityType.listening,
                 )
             )
