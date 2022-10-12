@@ -1,4 +1,7 @@
 from disnake import Message
+from dotenv import load_dotenv
+load_dotenv()
+
 from os import environ
 
 import sys
