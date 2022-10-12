@@ -81,7 +81,7 @@ class Moderation(commands.Cog):
     @has_voted()
     async def scan(self, ctx: ApplicationCommandInteraction, *args):
         ulist: List[Member] = []
-        await ctx.response.send_message(
+        await ctx.send(
             f"Beginning Scan... Estimated Duration: {len(ctx.guild.members)*3} seconds"
         )
         for member in ctx.guild.members:
@@ -272,7 +272,7 @@ class Moderation(commands.Cog):
                     f"you've been warned in {ctx.guild.name} for: {reason}"
                 )
             except:
-                await ctx.response.send_message("the member has their DMs closed.")
+                await ctx.send("the member has their DMs closed.")
 
     @slash_command(
         name="ban", description="Bans a user", aliases=["b"], usage="ban <user>"

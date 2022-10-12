@@ -52,9 +52,9 @@ class Fun(Cog):
     # async def votecheck(self, ctx: ApplicationCommandInteraction,member: Member = None):
     #     member = member or ctx.author
     #     if await self.dbl.get_user_vote(member.id):
-    #         await ctx.response.send_message(f"{member} has voted!")
+    #         await ctx.send(f"{member} has voted!")
     #     else:
-    #         await ctx.response.send_message(f"{member} has not voted!")
+    #         await ctx.send(f"{member} has not voted!")
 
     @slash_command(
         name="dog",
@@ -77,7 +77,7 @@ class Fun(Cog):
         embed = Embed(title=title)
         embed.set_footer(text=f"did you know? {fact}")
         embed.set_image(url=img)
-        await ctx.response.send_message(embed=embed)
+        await ctx.send(embed=embed)
 
     @slash_command(
         name="cat",
@@ -93,7 +93,7 @@ class Fun(Cog):
         embed = Embed(title=title)
         embed.set_footer(text=f"Did you know? {fact}")
         embed.set_image(url=img)
-        await ctx.response.send_message(embed=embed)
+        await ctx.send(embed=embed)
 
     @slash_command(
         name="fox",
@@ -109,7 +109,7 @@ class Fun(Cog):
         embed = Embed(title=title)
         embed.set_footer(text=f"Did you know? {fact}")
         embed.set_image(url=img)
-        await ctx.response.send_message(embed=embed)
+        await ctx.send(embed=embed)
 
     @slash_command(
         name="meme",
@@ -126,7 +126,7 @@ class Fun(Cog):
         title = caption
         embed = Embed(title=title)
         embed.set_image(url=memeurl)
-        await ctx.response.send_message(embed=embed)
+        await ctx.send(embed=embed)
 
     @slash_command(
         name="chat",
@@ -164,7 +164,7 @@ class Fun(Cog):
         embed = Embed(title="Who's that Pokemon?", color=Color.red())
         embed.set_image(url=p.question)
         embed.set_footer(text="You have 60 seconds to answer!")
-        prompt = await ctx.response.send_message(embed=embed)
+        prompt = await ctx.send(embed=embed)
 
         def check(m):
             return (
@@ -204,7 +204,7 @@ class Fun(Cog):
         file = File(b.read(), filename=f"{member.id}bad.png")
         embed = Embed(title=f"Bad {member.name}! Bad!")
         embed.set_image(url=f"attachment://{member.id}bad.png")
-        await ctx.response.send_message(embed=embed, file=file)
+        await ctx.send(embed=embed, file=file)
         # os.remove(f"{member.id}bad.png")
 
     @slash_command(
@@ -223,7 +223,7 @@ class Fun(Cog):
         cap.save(f"{member.id}captcha.png")
         # c.close()
         file = File(f"{member.id}captcha.png", filename=f"{member.id}captcha.png")
-        await ctx.response.send_message(file=file)
+        await ctx.send(file=file)
         os.remove(f"{member.id}captcha.png")
 
     @slash_command(
@@ -246,7 +246,7 @@ class Fun(Cog):
         f = await aiofiles.open(f"{member.id}triggered.gif", mode="wb")
         triggeredgif = await r.read()
         if int(r.status) != 200:
-            await ctx.response.send_message(
+            await ctx.send(
                 f"somethin went wrong. we're looking into it, don't worry."
             )
             return
@@ -256,7 +256,7 @@ class Fun(Cog):
         # await f.close()
         file = File(f"{member.id}triggered.gif", filename=f"{member.id}triggered.gif")
         embed = Embed(title="u mad bro?")
-        await ctx.response.send_message(file=file)
+        await ctx.send(file=file)
         os.remove(f"{member.id}triggered.gif")
 
     @slash_command(
@@ -273,7 +273,7 @@ class Fun(Cog):
         file = File(f"{member.id}trash.png", filename=f"{member.id}trash.png")
         embed = Embed(title=f"You're trash, {member.name}!")
         embed.set_image(url=f"attachment://{member.id}trash.png")
-        await ctx.response.send_message(embed=embed, file=file)
+        await ctx.send(embed=embed, file=file)
         os.remove(f"{member.id}trash.png")
 
     @slash_command(name="wasted", description="WASTED", usage="wasted [user]")
@@ -286,7 +286,7 @@ class Fun(Cog):
         waste = Image.open(w)
         waste.save(f"{member.id}wasted.png")
         file = File(f"{member.id}wasted.png", filename=f"{member.id}wasted.png")
-        await ctx.response.send_message(file=file)
+        await ctx.send(file=file)
         os.remove(f"{member.id}wasted.png")
 
     @slash_command(name="jail", description="Put a user in jail!", usage="jail [user]")
@@ -301,7 +301,7 @@ class Fun(Cog):
         file = File(f"{member.id}jail.png", filename=f"{member.id}jail.png")
         embed = Embed(title=f"{member.name}'s gonna be locked up for a while...")
         embed.set_image(url=f"attachment://{member.id}jail.png")
-        await ctx.response.send_message(embed=embed, file=file)
+        await ctx.send(embed=embed, file=file)
         os.remove(f"{member.id}jail.png")
 
     @slash_command(
@@ -325,7 +325,7 @@ class Fun(Cog):
         file = File(f"{member.id}quote.png", filename=f"{member.id}quote.png")
         embed = Embed(title=f"{member.name} said:")
         embed.set_image(url=f"attachment://{member.id}quote.png")
-        await ctx.response.send_message(embed=embed, file=file)
+        await ctx.send(embed=embed, file=file)
         os.remove(f"{member.id}quote.png")
 
     @slash_command(
@@ -338,7 +338,7 @@ class Fun(Cog):
         member = member or ctx.author
         roast = await dc.roast()
         embed = Embed(title=f"{member.name}, {roast}", color=Color.green())
-        await ctx.response.send_message(embed=embed)
+        await ctx.send(embed=embed)
 
     @slash_command(
         name="snipe",
@@ -349,11 +349,11 @@ class Fun(Cog):
         try:
             msg = next(item for item in self.snipelist if item["guild"] == ctx.guild.id)
         except:
-            await ctx.response.send_message("I couldn't find anything I could snipe!")
+            await ctx.send("I couldn't find anything I could snipe!")
         else:
             msg = msg["message"]
             if len(msg.embeds) > 0:
-                await ctx.response.send_message(
+                await ctx.send(
                     "Here's the message: ", embed=msg.embeds[0]
                 )
                 return
@@ -364,7 +364,7 @@ class Fun(Cog):
                     color=Color.green(),
                 )
             embed.set_author(name=msg.author, icon_url=msg.author.avatar_url)
-            await ctx.response.send_message(embed=embed)
+            await ctx.send(embed=embed)
 
     @Cog.listener()
     async def on_message_delete(self, message):
@@ -396,7 +396,7 @@ class Fun(Cog):
         file = File(f"{member.id}ascii.png", filename=f"{member.id}ascii.png")
         embed = Embed(title=f"{member.name} is hackerman!")
         embed.set_image(url=f"attachment://{member.id}ascii.png")
-        await ctx.response.send_message(embed=embed, file=file)
+        await ctx.send(embed=embed, file=file)
         os.remove(f"{member.id}ascii.png")
 
     @slash_command(name="tweet", description="Tweet something!", usage="tweet <text>")
@@ -409,7 +409,7 @@ class Fun(Cog):
         )
         tweet_image = Image.save(f"{ctx.author.id}tweet.png")
         file = File(f"{ctx.author.id}tweet.png", filename=f"{ctx.author.id}tweet.png")
-        await ctx.response.send_message(file=file)
+        await ctx.send(file=file)
         os.remove(f"{ctx.author.id}tweet.png")
 
     @slash_command(
@@ -453,7 +453,7 @@ class Fun(Cog):
             color=ctx.author.color,
         )
         embed.set_footer(text=comment)
-        await ctx.response.send_message(embed=embed)
+        await ctx.send(embed=embed)
 
     @slash_command(
         name="panda",
@@ -469,7 +469,7 @@ class Fun(Cog):
         embed = Embed(title=title)
         embed.set_footer(text=f"Did you know? {fact}")
         embed.set_image(url=img)
-        await ctx.response.send_message(embed=embed)
+        await ctx.send(embed=embed)
 
     @slash_command(
         name="wordsoccer",
@@ -482,7 +482,7 @@ class Fun(Cog):
         word_res = await self.http.get("https://bruhapi.xyz/word")
         word = await word.json()
         word = word["res"]
-        await ctx.response.send_message(
+        await ctx.send(
             f"A word soccer game has been started by {ctx.author.mention}! To play, you have to send a word that begins with the last letter of the previous word! Example: `apple` -> `elephant` -> `towel` -> `lion`\nThe rules of this game are:\n**1. No back to backing!** Meaning that you can only send one word in a row!\n**2-Only one-word messages!** You can't send two words in one message!\nThat's about it for the instructions! Let's **PLAY**!\nYour starting word is: {word}"
         )
 
@@ -496,11 +496,11 @@ class Fun(Cog):
                     msg.author == ctx.author
                     or msg.author.guild_permissions.kick_members == True
                 ):
-                    await ctx.response.send_message(
+                    await ctx.send(
                         f"The game was ended by {msg.author.mention}."
                     )
                     return
-            await ctx.response.send_message(
+            await ctx.send(
                 f"{msg.author.mention} ruined it! The game has ended! You had a total of {points} points!"
             )
             return
@@ -520,11 +520,11 @@ class Fun(Cog):
                         msg.author == ctx.author
                         or msg.author.guild_permissions.kick_members == True
                     ):
-                        await ctx.response.send_message(
+                        await ctx.send(
                             f"The game was ended by {msg.author.mention}."
                         )
                         return
-                await ctx.response.send_message(
+                await ctx.send(
                     f"{msg.author.mention} ruined it! The game has ended! You had a total of {points} points!"
                 )
                 return
@@ -569,7 +569,7 @@ class Fun(Cog):
             text=f"Requested by {ctx.author.name} • 👍 {up} | 👎 {down}",
             icon_url=ctx.author.avatar_url,
         )
-        await ctx.response.send_message(embed=embed)
+        await ctx.send(embed=embed)
 
     @slash_command(
         name="birb",
@@ -591,7 +591,7 @@ class Fun(Cog):
         embed = Embed(title=title)
         embed.set_footer(text=f"did you know? {fact}")
         embed.set_image(url=img)
-        await ctx.response.send_message(embed=embed)
+        await ctx.send(embed=embed)
 
 
 def setup(bot):

@@ -22,7 +22,7 @@ class Bot_Info(Cog):
             description="**By voting for me, you will:**\n- Support my development!\nUnlock Voter-only perks such as AI that remembers conversations!\n**Vote for me **[here](https://top.gg/bot/766818911505088514/vote)!",
             color=disnake.Color.green(),
         )
-        await ctx.response.send_message(embed=embed)
+        await ctx.send(embed=embed)
 
     @slash_command(
         name="changelog",
@@ -36,7 +36,7 @@ class Bot_Info(Cog):
             description="- Fixed `whois` glitch\n- Added queue support for music\n- Fixed music commands\n- **Please excuse the large help menu, I'm working on getting it to be a reaction menu!**",
             color=disnake.Color.green(),
         )
-        await ctx.response.send_message(embed=embed)
+        await ctx.send(embed=embed)
 
     @slash_command(
         name="privacypolicy",
@@ -57,7 +57,7 @@ class Bot_Info(Cog):
         embed.set_footer(
             text=f"Requested by {ctx.author.name}", icon_url=ctx.author.avatar_url
         )
-        await ctx.response.send_message(embed=embed)
+        await ctx.send(embed=embed)
 
     @slash_command(
         name="invite", description="Get megaton's invite link!", usage="invite"
@@ -78,7 +78,7 @@ class Bot_Info(Cog):
         embed.set_footer(
             icon_url=ctx.author.avatar_url, text=f"Requested by {ctx.author.name}"
         )
-        await ctx.response.send_message(embed=embed)
+        await ctx.send(embed=embed)
 
     @slash_command(
         name="credits",
@@ -91,11 +91,11 @@ class Bot_Info(Cog):
             description="This bot was created, hosted, and maintained by <@536644802595520534>. ",
             color=disnake.Color.dark_purple(),
         )
-        await ctx.response.send_message(embed=embed)
+        await ctx.send(embed=embed)
 
     @slash_command(name="ping", description="Returns the bot ping.")
     async def ping(self, ctx):
-        await ctx.response.send_message(
+        await ctx.send(
             f"**Pong!** Ping is {round(self.bot.latency * 1000)}ms."
         )
 
@@ -129,7 +129,7 @@ class Bot_Info(Cog):
             value=f"bot is in {len(self.bot.guilds)} guilds and has a total of {mc} users.",
         )
         embed.add_field(name="credits", value="created by [thrzl](https://thrzl.xyz/)")
-        await ctx.response.send_message(embed=embed)
+        await ctx.send(embed=embed)
 
     @slash_command(
         name="support", description="Get a link to the support server", usage="support"
@@ -147,7 +147,7 @@ class Bot_Info(Cog):
             name="megaton Support Server",
             value="Join our [support server](https://discord.gg/bNtj2nFnYA) for assistance with the bot!",
         )
-        await ctx.response.send_message("Check your DMs!")
+        await ctx.send("Check your DMs!")
         await ctx.message.add_reaction("📬")
         await ctx.author.send(embed=embed)
 

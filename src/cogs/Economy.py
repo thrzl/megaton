@@ -30,14 +30,14 @@ class Economy(Cog):
         if choice == 1:
             await EconomyData.update_wallet(member.id, -amt)
             await EconomyData.update_wallet(ctx.author.id, amt)
-            await ctx.response.send_message(
+            await ctx.send(
                 embed=Embed(
                     description=f"**{ctx.author.name}** just stole **{amt}** coins from **{member.name}**!"
                 ).set_author(name="robbed!")
             )
         else:
             await EconomyData.update_wallet(ctx.author.id, -amt)
-            await ctx.response.send_message(
+            await ctx.send(
                 f"**{ctx.author.name}** just tried to rob **{member.name}**, but was caught! they paid a **{amt}** coins fine."
             )
 
@@ -49,7 +49,7 @@ class Economy(Cog):
             description=f"you worked as a **{choice(self.data.work.jobs)}** and earned **{money} coins**"
         ).set_author(name=choice(self.data.work.job_worked))
         await EconomyData.update_wallet(ctx.author.id, money)
-        await ctx.response.send_message(embed=embed)
+        await ctx.send(embed=embed)
 
     @slash_command(
         aliases=["dep", "bank"],
@@ -61,12 +61,12 @@ class Economy(Cog):
     async def dep(self, ctx: ApplicationCommandInteraction, amt: int):
         user = await EconomyData.get(ctx.author.id)
         if (user.wallet) < amt:
-            await ctx.response.send_message(
+            await ctx.send(
                 "You don't have enough money in your wallet for that!"
             )
         else:
             await EconomyData.deposit(ctx.author.id, amt)
-            await ctx.response.send_message(
+            await ctx.send(
                 f"You just deposited **{amt}** coins into your bank account!"
             )
 
@@ -80,12 +80,12 @@ class Economy(Cog):
     async def withdraw(self, ctx: ApplicationCommandInteraction, amt: int):
         user = await EconomyData.get(ctx.author.id)
         if (user["bank"]) < amt:
-            await ctx.response.send_message(
+            await ctx.send(
                 "You don't have enough money in the bank for that!"
             )
         else:
             await EconomyData.withdraw(ctx.author.id, amt)
-            await ctx.response.send_message(
+            await ctx.send(
                 f"You just withdrew **{amt}** coins from your bank account!"
             )
 
@@ -99,13 +99,13 @@ class Economy(Cog):
             guild = guild.id
             money = randint(34, 120)
             await EconomyData.update_wallet(ctx.author.id, money)
-            await ctx.response.send_message(
+            await ctx.send(
                 embed=Embed(
                     description=f"**{donor}** just gave you **{money}** coins!"
                 ).set_author(name=choice(self.data.beg.messages))
             )
         else:
-            await ctx.response.send_message(
+            await ctx.send(
                 embed=Embed(
                     description=f"{donor}: {choice(self.data.beg.deny_messages)}"
                 ).set_author(name=donor)
@@ -133,7 +133,7 @@ class Economy(Cog):
         )
         embed.add_field(name="wallet", value=f"{walletamt} coins")
         embed.add_field(name="bank", value=f"{bankamt} coins")
-        await ctx.response.send_message(embed=embed)
+        await ctx.send(embed=embed)
 
 
 def setup(bot):
