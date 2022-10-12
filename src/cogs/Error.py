@@ -23,7 +23,9 @@ class Error(Cog):
     @Cog.listener()
     async def on_slash_command(self, ctx):
         time = str(datetime.now())[:-10]
-        print(f"[{time}] {ctx.author.name} in {ctx.guild.name} ran command: {ctx.application_command.name}")
+        print(
+            f"[{time}] {ctx.author.name} in {ctx.guild.name} ran command: {ctx.application_command.name}"
+        )
 
     @Cog.listener()
     async def on_slash_command_error(

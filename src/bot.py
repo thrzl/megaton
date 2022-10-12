@@ -68,7 +68,6 @@ class Embed(_Embed):
 
 
 class Megaton(InteractionBot):
-
     def __init__(self, token: str, intents: Intents = None, *args, **kwargs):
         super().__init__()
         if not intents:

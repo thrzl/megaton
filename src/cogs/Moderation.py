@@ -140,7 +140,7 @@ class Moderation(commands.Cog):
             the amount of time to lock the channel for
         reason : str, optional
             the reason the member was timed out, by default "No Reason Provided."
-        """        
+        """
         if not time:
             seconds, time = self.bot.calculate_time(time)
         else:
@@ -354,7 +354,7 @@ class Moderation(commands.Cog):
             the amount of time to time the user out for
         reason : str, optional
             the reason the user was timed out, by default "No reason provided"
-        """            
+        """
         if (
             member.top_role >= ctx.author.top_role
             and ctx.guild.owner_id != ctx.author.id
@@ -502,6 +502,6 @@ class Moderation(commands.Cog):
                     return
             await ctx.send(str(member) + " has been unmuted.")
 
-    
+
 def setup(bot):
     bot.add_cog(Moderation(bot))
