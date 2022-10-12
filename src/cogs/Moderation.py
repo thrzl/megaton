@@ -15,7 +15,7 @@ from typing import List, Optional
 from os import environ
 from utils.data import Moderation as _mod
 
-kclient = ksoftapi.Client(environ["KSOFT_KEY"])
+kclient = ksoftapi.Client(environ.get("KSOFT_KEY"))
 
 
 def has_voted():

@@ -29,7 +29,7 @@ class Fun(Cog):
         self.bot = bot
         self.snipelist: List[Message] = []
         self.http = ClientSession(loop=bot.loop)
-        self.key = os.environ["RAPIDAPI_KEY"]
+        self.key = os.environ.get("RAPIDAPI_KEY")
 
     async def get_animal(self, animal: str):
         fact_res = await self.http.get(f"https://some-random-api.ml/facts/{animal}")
@@ -205,7 +205,7 @@ class Fun(Cog):
         embed = Embed(title=f"Bad {member.name}! Bad!")
         embed.set_image(url=f"attachment://{member.id}bad.png")
         await ctx.response.send_message(embed=embed, file=file)
-        os.remove(f"{member.id}bad.png")
+        # os.remove(f"{member.id}bad.png")
 
     @slash_command(
         name="captcha",

@@ -77,7 +77,7 @@ class Megaton(InteractionBot):
         self.token = token
         self.Embed = Embed
         self.loop.create_task(self.ch_pr())
-        self.statcord_client = StatcordClient(self, environ["STATCORD_KEY"])
+        self.statcord_client = StatcordClient(self, environ.get("STATCORD_KEY"))
         # dbl = dblpy.DBLClient(
         #     client,
         #     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Ijc2NjgxODkxMTUwNTA4ODUxNCIsImJvdCI6dHJ1ZSwiaWF0IjoxNjA2MzI0Mjc5fQ.ADjcN7pcHL9D5lfnGYHPQH8lXQyvqxzcWg7jSHLIgrs",

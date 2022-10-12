@@ -5,6 +5,7 @@ import sys
 from logging import getLogger, INFO, StreamHandler, Formatter
 
 from bot import Megaton
+from utils.check_env import check_env
 
 logger = getLogger("discord")
 logger.setLevel(INFO)
@@ -12,6 +13,8 @@ handler = StreamHandler(sys.stdout)
 handler.setFormatter(Formatter(f"%(asctime)s:%(levelname)s:%(name)s: %(message)s"))
 # handler.setFormatter(Formatter(f"[{str(datetime.now())[:-10]}] %(name)s: %(message)s"))
 logger.addHandler(handler)
+
+check_env()
 
 client = Megaton(
     token=environ["TOKEN"],
