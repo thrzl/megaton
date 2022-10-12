@@ -13,6 +13,7 @@ RAPIDAPI_KEY= # rapidapi key
 ```
 
 # 💾 installation
+> note: to set up the database, you can use the provided `db.sql` file.
 ```sh
 $ git clone https://github.com/thrzl/pinned
 $ cd pinned
