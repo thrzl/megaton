@@ -265,7 +265,7 @@ class Utility(commands.Cog):
         else:
             async with aiohttp.ClientSession() as session:
                 response = await session.get(
-                    f"https://some-random-api.ml/pokedex?pokemon={pokemon}"
+                    f"https://some-random-api.ml/pokemon/pokedex?pokemon={pokemon}"
                 )
                 if str(response.status) == "404":
                     return await ctx.send("I couldn't find that pokemon. Please try again.")
