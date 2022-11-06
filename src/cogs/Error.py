@@ -23,7 +23,9 @@ class Error(Cog):
     @Cog.listener()
     async def on_slash_command(self, ctx):
         time = str(datetime.now())[:-10]
-        print(f"[{time}] {ctx.author.name} in {ctx.guild.name} ran command: {ctx.application_command.name}")
+        print(
+            f"[{time}] {ctx.author.name} in {ctx.guild.name} ran command: {ctx.application_command.name}"
+        )
 
     @Cog.listener()
     async def on_slash_command_error(
@@ -34,28 +36,28 @@ class Error(Cog):
                 title="<a:suspicious:777565669860442132> **What are you trying to pull here...**",
                 description=f"You don't have the correct permissions to run that command {ctx.author.name}, {error}",
             )
-            await ctx.response.send_message(embed=embed)
+            await ctx.send(embed=embed)
             await ctx.message.add_reaction("❌")
         elif isinstance(error, BotMissingPermissions):
             mperm = str(error)
             mperm = mperm.replace("Bot requires", "")
             mperm = mperm.replace("permission(s) to run this command.", "")
-            await ctx.response.send_message(
+            await ctx.send(
                 f"**Uhh...** I don't have the correct permissions to do that...I'm missing the{mperm}permission."
             )
             await ctx.message.add_reaction("❌")
         elif isinstance(error, BotMissingPermissions):
-            await ctx.response.send_message(
+            await ctx.send(
                 f"**Uhh...** I don't have the correct permissions to do that...I'm missing {error.missing_perms}"
             )
             await ctx.message.add_reaction("❌")
         elif isinstance(error, MissingRequiredArgument):
-            await ctx.response.send_message(
+            await ctx.send(
                 "**Uhh...** you missed an argument in the command..."
             )
             await ctx.message.add_reaction("❌")
         elif isinstance(error, BadArgument):
-            await ctx.response.send_message(
+            await ctx.send(
                 "**Uhh...** one of your arguments is wrong..."
             )
             await ctx.message.add_reaction("❌")
@@ -67,7 +69,7 @@ class Error(Cog):
                 description="You've caused an error! The devs have been notified and will deal with the problem shortly.\n**Need extra help?** Join the [**Support Server**](https://discord.gg/bNtj2nFnYA)",
             )
             embed.add_field(name="error", value=f"```{error}```")
-            await ctx.response.send_message(embed=embed)
+            await ctx.send(embed=embed)
             # errorc = await self.bot.fetch_channel(773162575843688497)
             # embed = Embed(
             #     title="an error occurred",
@@ -110,7 +112,7 @@ class Error(Cog):
                 title="<a:explode:777565669633294407> **slow down!**",
                 description=f"you're on cooldown. wait {timestr} before using `{ctx.application_command.name}` again!",
             )
-            await ctx.response.send_message(
+            await ctx.send(
                 embed=embed
             )  # f"**Too fast!** You're on cooldown. `{ctx.message}` has a cooldown of {error.cooldown}. Wait {remaining} before trying again.")
         elif isinstance(error, NSFWChannelRequired):
@@ -118,7 +120,7 @@ class Error(Cog):
                 title="<a:nonono:777565669314396220> That's an nsfw command!",
                 description=f"The {ctx.application_command.name} command is nsfw! Please use it in an nsfw channel!",
             )
-            await ctx.response.send_message(embed=embed)
+            await ctx.send(embed=embed)
         raise error
 
 

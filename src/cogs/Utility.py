@@ -268,7 +268,9 @@ class Utility(commands.Cog):
                     f"https://some-random-api.ml/pokemon/pokedex?pokemon={pokemon}"
                 )
                 if str(response.status) == "404":
-                    return await ctx.send("I couldn't find that pokemon. Please try again.")
+                    return await ctx.send(
+                        "I couldn't find that pokemon. Please try again."
+                    )
                 rj = await response.json()
                 self.pokemon_cache[pokemon] = rj
         name = (rj["name"]).capitalize()
@@ -345,7 +347,9 @@ class Utility(commands.Cog):
         seconds = 0
         if reminder is None:
             embed.set_author(name=random.choice(Error.blurbs))
-            embed.description="please specify what do you want me to remind you about.",
+            embed.description = (
+                "please specify what do you want me to remind you about.",
+            )
             return await ctx.send(embed=embed)
         seconds, remindtime = self.bot.calculate_time(time)
         counter = remindtime.strftime("%s")
@@ -360,7 +364,11 @@ class Utility(commands.Cog):
                 value="You have specified a too long duration!\nMaximum duration is 90 days.",
             )
         else:
-            await ctx.send(embed=Embed(description=f"i will remind you about {reminder} <t:{counter}:R>."))
+            await ctx.send(
+                embed=Embed(
+                    description=f"i will remind you about {reminder} <t:{counter}:R>."
+                )
+            )
             await asyncio.sleep(seconds)
             await ctx.author.send(
                 f"Hi, you asked me to remind you about {reminder} <t:{cur_time}:R>."
@@ -378,7 +386,9 @@ class Utility(commands.Cog):
         for d in pdata:
             usercount = d["users"]
             cpu = d["cpuload"]
-        embed = Embed().set_author(name="megaton stats", icon_url=self.bot.user.avatar.url)
+        embed = Embed().set_author(
+            name="megaton stats", icon_url=self.bot.user.avatar.url
+        )
         embed.add_field(name="Server Count", value=len(self.bot.guilds))
         embed.add_field(name="User Count", value=f"{usercount}")
         embed.add_field(name="CPU Load", value=f"{cpu}%")
@@ -412,7 +422,9 @@ class Utility(commands.Cog):
             "verified_bot_developer": "<:verifiedbotdev:787449074994380821>",
         }
         user_flags = [fs[str(flag).split(".")[1]] for flag in m.public_flags.all()]
-        embed = Embed(description=" ".join(user_flags), color=color, preserve_case=True).set_author(name=m, icon_url=m.display_avatar)
+        embed = Embed(
+            description=" ".join(user_flags), color=color, preserve_case=True
+        ).set_author(name=m, icon_url=m.display_avatar)
         embed.set_thumbnail(url=m.display_avatar.url)
         joined_date = m.joined_at.date().strftime("%s")
         created_date = m.created_at.date().strftime("%s")

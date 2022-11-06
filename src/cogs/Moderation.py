@@ -15,7 +15,7 @@ from typing import List, Optional
 from os import environ
 from utils.data import Moderation as _mod
 
-kclient = ksoftapi.Client(environ["KSOFT_KEY"])
+kclient = ksoftapi.Client(environ.get("KSOFT_KEY"))
 
 
 def has_voted():
@@ -81,7 +81,7 @@ class Moderation(commands.Cog):
     @has_voted()
     async def scan(self, ctx: ApplicationCommandInteraction, *args):
         ulist: List[Member] = []
-        await ctx.response.send_message(
+        await ctx.send(
             f"Beginning Scan... Estimated Duration: {len(ctx.guild.members)*3} seconds"
         )
         for member in ctx.guild.members:
@@ -140,7 +140,7 @@ class Moderation(commands.Cog):
             the amount of time to lock the channel for
         reason : str, optional
             the reason the member was timed out, by default "No Reason Provided."
-        """        
+        """
         if not time:
             seconds, time = self.bot.calculate_time(time)
         else:
@@ -272,7 +272,7 @@ class Moderation(commands.Cog):
                     f"you've been warned in {ctx.guild.name} for: {reason}"
                 )
             except:
-                await ctx.response.send_message("the member has their DMs closed.")
+                await ctx.send("the member has their DMs closed.")
 
     @slash_command(
         name="ban", description="Bans a user", aliases=["b"], usage="ban <user>"
@@ -354,7 +354,7 @@ class Moderation(commands.Cog):
             the amount of time to time the user out for
         reason : str, optional
             the reason the user was timed out, by default "No reason provided"
-        """            
+        """
         if (
             member.top_role >= ctx.author.top_role
             and ctx.guild.owner_id != ctx.author.id
@@ -502,6 +502,6 @@ class Moderation(commands.Cog):
                     return
             await ctx.send(str(member) + " has been unmuted.")
 
-    
+
 def setup(bot):
     bot.add_cog(Moderation(bot))

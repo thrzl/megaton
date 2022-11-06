@@ -7,6 +7,7 @@ from enum import Enum
 from os import environ
 from asyncio import sleep
 from statcord import StatcordClient
+from humanize import intword
 
 
 class FalseVaccum(Exception):
@@ -68,7 +69,6 @@ class Embed(_Embed):
 
 
 class Megaton(InteractionBot):
-
     def __init__(self, token: str, intents: Intents = None, *args, **kwargs):
         super().__init__()
         if not intents:
@@ -77,7 +77,7 @@ class Megaton(InteractionBot):
         self.token = token
         self.Embed = Embed
         self.loop.create_task(self.ch_pr())
-        self.statcord_client = StatcordClient(self, environ["STATCORD_KEY"])
+        self.statcord_client = StatcordClient(self, environ.get("STATCORD_KEY"))
         # dbl = dblpy.DBLClient(
         #     client,
         #     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Ijc2NjgxODkxMTUwNTA4ODUxNCIsImJvdCI6dHJ1ZSwiaWF0IjoxNjA2MzI0Mjc5fQ.ADjcN7pcHL9D5lfnGYHPQH8lXQyvqxzcWg7jSHLIgrs",
@@ -114,7 +114,7 @@ class Megaton(InteractionBot):
             mc = sum(guild.member_count for guild in self.guilds)
             await self.change_presence(
                 activity=Activity(
-                    name=f"{mc} members in {len(self.guilds)} guilds",
+                    name=f"{intword(mc)} members in {len(self.guilds)} guilds",
                     type=ActivityType.listening,
                 )
             )

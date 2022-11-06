@@ -29,12 +29,12 @@ class Bot_Owner(commands.Cog):
             if i.name.lower() == command.lower() or command.lower() in i.aliases:
                 if i.enabled:
                     i.update(enabled=False)
-                    await ctx.response.send_message(
+                    await ctx.send(
                         f"`{command}` disabled successfully."
                     )
                 else:
                     i.update(enabled=True)
-                    await ctx.response.send_message(
+                    await ctx.send(
                         f"`{command}` enabled successfully."
                     )
                 return
@@ -79,7 +79,7 @@ class Bot_Owner(commands.Cog):
             await self.bot.change_presence(
                 activity=disnake.Activity(type=disnake.ActivityType.custom, name=status)
             )
-        await ctx.response.send_message("Status changed successfully!")
+        await ctx.send("Status changed successfully!")
 
     @slash_command(
         name="restart",
@@ -90,13 +90,13 @@ class Bot_Owner(commands.Cog):
     async def restart(self, ctx):
         if str(ctx.author.id) == "536644802595520534":
             await ctx.message.add_reaction("🔄")
-            await ctx.response.send_message("Shutting down...")
+            await ctx.send("Shutting down...")
             await self.bot.close()
             os.execv(sys.executable, ["python"] + sys.argv)
             exit
         else:
             await ctx.message.add_reaction("❌")
-            await ctx.response.send_message(
+            await ctx.send(
                 "Don't do that, a message has been sent to the owner of the bot including your ID and the command."
             )
             owner = await self.bot.fetch_user(536644802595520534)
@@ -133,12 +133,12 @@ class Bot_Owner(commands.Cog):
         if str(ctx.author.id) == "536644802595520534":
             await ctx.message.add_reaction("👋🏽")
             await self.bot.change_presence(status=disnake.Status.offline)
-            await ctx.response.send_message("Shutting down...")
+            await ctx.send("Shutting down...")
             await self.bot.close()
             exit
         else:
             await ctx.message.add_reaction("❌")
-            await ctx.response.send_message(
+            await ctx.send(
                 "Don't do that, a message has been sent to the owner of the bot including your ID and the command."
             )
             owner = await self.bot.fetch_user(536644802595520534)
