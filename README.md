@@ -10,14 +10,13 @@ DB_PATH= # sqlite db path
 ```
 
 # 💾 installation
-> note: to set up the database, you can use the provided `db.sql` file.
 ```sh
-$ git clone https://github.com/thrzl/pinned
-$ cd pinned
-$ pip install -r requirements.txt
+$ git clone https://github.com/thrzl/megaton
+$ cd megaton
+$ uv sync
 ```
 # 🫂 how to contribute
 1. fork
 2. make changes
 3. make sure the stuff actually works
-4. pull request twin!!! 👍🏽🥶🔥💯
+4. pull request !!!
