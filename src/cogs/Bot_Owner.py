@@ -29,14 +29,10 @@ class Bot_Owner(commands.Cog):
             if i.name.lower() == command.lower() or command.lower() in i.aliases:
                 if i.enabled:
                     i.update(enabled=False)
-                    await ctx.send(
-                        f"`{command}` disabled successfully."
-                    )
+                    await ctx.send(f"`{command}` disabled successfully.")
                 else:
                     i.update(enabled=True)
-                    await ctx.send(
-                        f"`{command}` enabled successfully."
-                    )
+                    await ctx.send(f"`{command}` enabled successfully.")
                 return
 
     @slash_command(aliases=["glist"])
