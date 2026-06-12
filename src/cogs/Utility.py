@@ -6,7 +6,6 @@ from ast import Bytes
 from datetime import date, datetime, timedelta
 from io import BytesIO
 
-import aiofiles
 import aiohttp
 from aiohttp import *
 from cachetools import LRUCache
