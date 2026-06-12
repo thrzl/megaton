@@ -6,6 +6,7 @@ from disnake import Message
 from dotenv import load_dotenv
 
 from src.bot import Megaton
+from src.db import Database
 from src.utils.check_env import check_env
 
 load_dotenv()
@@ -19,16 +20,33 @@ logger.addHandler(handler)
 
 check_env()
 
+test_guilds = (
+    [int(guild) for guild in environ["TEST_GUILDS"].split(",")]
+    if environ.get("TEST_GUILDS")
+    else []
+)
+owner_ids = (
+    [int(owner) for owner in environ["OWNER_IDS"].split(",")]
+    if environ.get("OWNER_IDS")
+    else []
+)
 client = Megaton(
     token=environ["TOKEN"],
+    test_guilds=test_guilds,
+    owner_ids=owner_ids,
 )
 
 
 @client.event
 async def on_ready():
+    client.db = await Database.create(environ["DB_URL"])
+
+    client.load_extension("src.cogs.Config")
     print(f"| signed in as {client.user.name} [{client.user.id}]")
     print(f"| can see {len(client.guilds)} servers")
     print(f"| loaded {len(client.slash_commands)} commands in {len(client.cogs)} cogs")
+    print(f"| test guilds: {client._test_guilds or '(none)'}")
+    print(f"| owner ids: {client.owner_ids or '(none)'}")
 
 
 @client.event
@@ -39,20 +57,19 @@ async def on_message(message: Message):
         if "reload" in message.content:
             c = [i for i in client.cogs]
             for i in c:
-                client.reload_extension(f"cogs.{i}")
+                client.reload_extension(f"src.cogs.{i}")
             await message.add_reaction("✅")
         elif message.content.startswith("load"):
             c = [i for i in message.content.split(" ")[1:]]
             for i in c:
                 try:
-                    client.load_extension(f"cogs.{i}")
+                    client.load_extension(f"src.cogs.{i}")
                 except Exception as e:
                     print(e)
             await message.add_reaction("✅")
     return
 
 
-# client.load_extension("jishaku")
 # client.load_extension("src.cogs.Moderation")
 client.load_extension("src.cogs.Bot_Owner")
 # client.load_extension("src.cogs.Welcome")
@@ -61,7 +78,6 @@ client.load_extension("src.cogs.Bot_Owner")
 # client.load_extension("src.cogs.Fun")
 client.load_extension("src.cogs.Utility")
 # client.load_extension("src.cogs.Music")
-# client.load_extension("src.cogs.Config")
 # client.load_extension("src.cogs.Level")
 client.load_extension("src.cogs.Error")
 client.load_extension("src.cogs.Bot_Info")

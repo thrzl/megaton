@@ -20,7 +20,7 @@ from src.bot import Embed, Megaton
 from src.utils.data import Error
 
 
-async def get_color(img):
+async def get_color(img) -> tuple[int, int, int]:
     clr_thief = ColorThief(img)
     dominant_color = clr_thief.get_color(quality=1)
     return dominant_color
@@ -59,21 +59,16 @@ class Utility(commands.Cog):
     async def server(self, ctx: ApplicationCommandInteraction):
         if not ctx.guild:
             return
-        clr = ", ".join(await get_color(BytesIO(await ctx.guild.icon.read())))
-        red, blue, green = [int(c) for c in clr]
-        color = Color.from_rgb(red, green, blue)
         tcount = len(ctx.guild.text_channels)
         vcount = len(ctx.guild.voice_channels)
         rcount = len(ctx.guild.roles)
-        embed = Embed(color=color).set_author(name=ctx.guild.name)
+        embed = Embed().set_author(name=ctx.guild.name)
+        if (guild_icon := ctx.guild.icon) is not None:
+            red, green, blue = await get_color(BytesIO(await guild_icon.read()))
+            embed.color = Color.from_rgb(red, green, blue)
         embed.set_thumbnail(url=ctx.guild.icon)
         embed.add_field(name="Owner", value=ctx.guild.owner, inline=True)
         embed.add_field(name="Server ID", value=ctx.guild.id, inline=True)
-        embed.add_field(
-            name="region",
-            value=ctx.guild.region,
-            inline=True,
-        )
         embed.add_field(
             name="Member Count",
             value=f"<:member:779742587425652757> {ctx.guild.member_count}",
@@ -84,10 +79,11 @@ class Utility(commands.Cog):
             value=f"<:channel:779742587497742376> {tcount} | <:voicechannel:779742587011465238> {vcount}",
         )
         embed.add_field(name="Role Count 🎨", value=f"{rcount}")
-        embed.add_field(name="Top Role ✨🎨", value=ctx.guild.roles.reverse()[0])
+        embed.add_field(name="Top Role ✨🎨", value=ctx.guild.roles[-1])
         embed.add_field(name="Creation Date 📅", value=ctx.guild.created_at)
         embed.set_footer(
-            icon_url=ctx.author.avatar.url, text=f"Requested by {ctx.author.name}"
+            icon_url=ctx.author.display_avatar.url,
+            text=f"Requested by {ctx.author.name}",
         )
         await ctx.send(embed=embed)
 
@@ -268,7 +264,7 @@ class Utility(commands.Cog):
         else:
             async with aiohttp.ClientSession() as session:
                 response = await session.get(
-                    f"https://some-random-api.ml/pokemon/pokedex?pokemon={pokemon}"
+                    f"https://some-random-api.com/pokemon/pokedex?pokemon={pokemon}"
                 )
                 if str(response.status) == "404":
                     return await ctx.send(
