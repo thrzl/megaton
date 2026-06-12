@@ -1,6 +1,6 @@
 from os import environ
 
-keys = ("DB_PATH", "TOKEN", "STATCORD_KEY", "KSOFT_KEY", "RAPIDAPI_KEY")
+keys = ("DB_PATH", "TOKEN")
 
 
 def check_env():
