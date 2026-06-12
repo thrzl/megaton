@@ -114,18 +114,6 @@ wheels = [
 ]
 
 [[package]]
-name = "asyncdagpi"
-version = "4.1.5"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "aiohttp" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/e7/80/9cd8c19fcb0c98a52de346fae8176df089bcb5cc1576e7966a28ea560690/asyncdagpi-4.1.5.tar.gz", hash = "sha256:55f8fd825bc5c1a7339681947a241d4a3db628700ff0a54599066c2e27235675", size = 13667, upload-time = "2022-07-28T20:58:07.419Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/8f/20/21dc4163b8cdeafb4bd5a146ed2d926c7544b5674595a745fc8bdc875d7e/asyncdagpi-4.1.5-py3-none-any.whl", hash = "sha256:b17fd8587a2f93d1e7e27d9fc8901270aeb198112f1ac0ac6adde78424ff380a", size = 14399, upload-time = "2022-07-28T20:58:06.024Z" },
-]
-
-[[package]]
 name = "asyncpg"
 version = "0.31.0"
 source = { registry = "https://pypi.org/simple" }
@@ -474,24 +462,11 @@ wheels = [
 ]
 
 [[package]]
-name = "ksoftapi"
-version = "0.4.1"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "aiohttp" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/53/78/915fb7556ed7307686cf5f540453944978411c4c0af4eb3906fff08cd410/ksoftapi-0.4.1.tar.gz", hash = "sha256:129637eb36c3b9e275b8e95810f69fc52ff1040358c1c80c8867ef7892c76a52", size = 9672, upload-time = "2021-04-21T13:35:06.9Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/87/a0/6b89d1091672df3225bb39c167021bbfc655841bf0a6dccafbf4252148c2/ksoftapi-0.4.1-py3-none-any.whl", hash = "sha256:1c32bd3483ab132cec204022c534033d1036125451b4ce27a1ad1380ac15a0a3", size = 24030, upload-time = "2021-04-21T13:35:03.519Z" },
-]
-
-[[package]]
 name = "megaton"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
     { name = "aiofiles" },
-    { name = "asyncdagpi" },
     { name = "asyncpg" },
     { name = "cachetools" },
     { name = "colorthief" },
@@ -499,7 +474,6 @@ dependencies = [
     { name = "dnspython" },
     { name = "humanize" },
     { name = "jishaku" },
-    { name = "ksoftapi" },
     { name = "pillow" },
     { name = "python-dotenv" },
     { name = "sqlalchemy" },
@@ -514,7 +488,6 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "aiofiles", specifier = ">=25.1.0" },
-    { name = "asyncdagpi", specifier = ">=4.1.5" },
     { name = "asyncpg", specifier = ">=0.31.0" },
     { name = "cachetools", specifier = ">=7.1.4" },
     { name = "colorthief", specifier = ">=0.2.1" },
@@ -522,7 +495,6 @@ requires-dist = [
     { name = "dnspython", specifier = ">=2.8.0" },
     { name = "humanize", specifier = ">=4.15.0" },
     { name = "jishaku", specifier = ">=2.7.5" },
-    { name = "ksoftapi", specifier = ">=0.4.1" },
     { name = "pillow", specifier = ">=12.2.0" },
     { name = "python-dotenv", specifier = ">=1.2.2" },
     { name = "sqlalchemy", specifier = ">=2.0.50" },

@@ -6,7 +6,6 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "aiofiles>=25.1.0",
-    "asyncdagpi>=4.1.5",
     "asyncpg>=0.31.0",
     "cachetools>=7.1.4",
     "colorthief>=0.2.1",
@@ -14,7 +13,6 @@ dependencies = [
     "dnspython>=2.8.0",
     "humanize>=4.15.0",
     "jishaku>=2.7.5",
-    "ksoftapi>=0.4.1",
     "pillow>=12.2.0",
     "python-dotenv>=1.2.2",
     "sqlalchemy>=2.0.50",
