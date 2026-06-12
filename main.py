@@ -28,6 +28,8 @@ client = Megaton(
 @client.event
 async def on_ready():
     client.db = await Database.create(environ["DB_URL"])
+
+    client.load_extension("src.cogs.Config")
     print(f"| signed in as {client.user.name} [{client.user.id}]")
     print(f"| can see {len(client.guilds)} servers")
     print(f"| loaded {len(client.slash_commands)} commands in {len(client.cogs)} cogs")
@@ -41,13 +43,13 @@ async def on_message(message: Message):
         if "reload" in message.content:
             c = [i for i in client.cogs]
             for i in c:
-                client.reload_extension(f"cogs.{i}")
+                client.reload_extension(f"src.cogs.{i}")
             await message.add_reaction("✅")
         elif message.content.startswith("load"):
             c = [i for i in message.content.split(" ")[1:]]
             for i in c:
                 try:
-                    client.load_extension(f"cogs.{i}")
+                    client.load_extension(f"src.cogs.{i}")
                 except Exception as e:
                     print(e)
             await message.add_reaction("✅")
@@ -62,7 +64,6 @@ client.load_extension("src.cogs.Bot_Owner")
 # client.load_extension("src.cogs.Fun")
 client.load_extension("src.cogs.Utility")
 # client.load_extension("src.cogs.Music")
-# client.load_extension("src.cogs.Config")
 # client.load_extension("src.cogs.Level")
 client.load_extension("src.cogs.Error")
 client.load_extension("src.cogs.Bot_Info")
