@@ -9,21 +9,14 @@ from io import BytesIO
 import aiohttp
 from aiohttp import *
 from cachetools import LRUCache
-from colorthief import ColorThief
 from disnake import Asset, Color, Member, PartialEmoji
-from disnake.enums import UserFlags
 from disnake.ext import commands
 from disnake.ext.commands import slash_command
 from disnake.ext.commands.slash_core import ApplicationCommandInteraction
+from modern_colorthief import get_color
 
 from src.bot import Embed, Megaton
 from src.utils.data import Error
-
-
-async def get_color(img) -> tuple[int, int, int]:
-    clr_thief = ColorThief(img)
-    dominant_color = clr_thief.get_color(quality=1)
-    return dominant_color
 
 
 class Utility(commands.Cog):
@@ -64,7 +57,7 @@ class Utility(commands.Cog):
         rcount = len(ctx.guild.roles)
         embed = Embed().set_author(name=ctx.guild.name)
         if (guild_icon := ctx.guild.icon) is not None:
-            red, green, blue = await get_color(BytesIO(await guild_icon.read()))
+            red, green, blue = get_color(BytesIO(await guild_icon.read()))
             embed.color = Color.from_rgb(red, green, blue)
         embed.set_thumbnail(url=ctx.guild.icon)
         embed.add_field(name="Owner", value=ctx.guild.owner, inline=True)
@@ -406,8 +399,7 @@ class Utility(commands.Cog):
     async def whois(self, ctx: ApplicationCommandInteraction, *, member: Member = None):
         m: Member = member or ctx.author
         url: Asset = m.display_avatar
-        clr = await get_color(BytesIO(await url.read()))
-        red, blue, green = (int(c) for c in clr)
+        red, green, blue = get_color(BytesIO(await url.read()))
         color = Color.from_rgb(red, green, blue)
         fs = {
             "staff": "<:staff:787444950974988288>",

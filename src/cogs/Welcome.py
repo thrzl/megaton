@@ -1,15 +1,9 @@
 from disnake import Member
 from disnake.ext import commands
 import disnake
-from colorthief import ColorThief
 from io import BytesIO
 from src.bot import Embed, Megaton
-
-
-async def get_color(img: BytesIO) -> tuple[int, int, int]:
-    clr_thief = ColorThief(img)
-    dominant_color = clr_thief.get_color(quality=1)
-    return dominant_color
+from modern_colorthief import get_color
 
 
 class Welcome(commands.Cog):
@@ -30,7 +24,7 @@ class Welcome(commands.Cog):
         # eg = await self.bot.fetch_guild(member.guild.id)
 
         image_bytes = BytesIO(await member.display_avatar.read())
-        red, green, blue = await get_color(image_bytes)
+        red, green, blue = get_color(image_bytes)
         embed = Embed(
             title=f"goodbye {member.name}",
             description=f"thanks for visiting {member.guild.name}!",
@@ -57,7 +51,7 @@ class Welcome(commands.Cog):
         welcome_channel = await self.bot.fetch_channel(welcome_channel_id)
 
         image_bytes = BytesIO(await member.display_avatar.read())
-        red, green, blue = await get_color(image_bytes)
+        red, green, blue = get_color(image_bytes)
         embed = Embed(
             title=f"welcome {member.name} 🎉",
             description=f"welcome to {member.guild.name}! we hope you have a great time here!",
