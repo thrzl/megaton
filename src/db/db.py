@@ -1,13 +1,24 @@
 from __future__ import annotations
-from aiosqlite import connect as sqlite
+from aiosqlite import connect as sqlite, Connection
 from msgspec import Struct
 
 
 class Database:
     __slots__ = ("client",)
 
-    def __init__(self, db_url: str):
-        self.client = sqlite(db_url)
+    def __init__(self, connection: Connection):
+        self.client = connection
+
+    @classmethod
+    async def create(cls, db_url: str) -> Database:
+        self = cls(await sqlite(db_url))
+        await self.client.execute(
+            "CREATE TABLE IF NOT EXISTS economy_data (id INTEGER PRIMARY KEY, wallet INTEGER, bank INTEGER)"
+        )
+        await self.client.execute(
+            "CREATE TABLE IF NOT EXISTS guild_settings (guild_id INTEGER PRIMARY KEY, leveling INTEGER, logging INTEGER, welcoming INTEGER)"
+        )
+        return self
 
     async def get_economy_data(self, item_id: int) -> EconomyData:
         async with self.client as db:
