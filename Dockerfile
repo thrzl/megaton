@@ -5,9 +5,8 @@ WORKDIR /app
 ENV UV_LINK_MODE=copy
 ENV UV_NO_DEV=1
 
-RUN --mount=type=cache,id=uv-cache,target=/root/.cache/uv \
-    --mount=type=bind,source=uv.lock,target=uv.lock \
-    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
+COPY uv.lock pyproject.toml /app/
+RUN --mount=type=cache,id=s/cdd02d9d-ce3d-4a12-8f17-5ed30b62c514-/root/.cache/uv,target=/root/.cache/uv \
     uv sync --frozen --no-install-project
 
 COPY . /app
