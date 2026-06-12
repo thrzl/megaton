@@ -34,9 +34,7 @@ class Database:
             await self.client.commit()
             return new_row
 
-        return EconomyData(
-            _db=self, id=row["id"], wallet=row["wallet"], bank=row["bank"]
-        )
+        return EconomyData(_db=self, id=row[0], wallet=row[1], bank=row[2])
 
     async def get_guild_settings(self, guild_id: int) -> GuildSettings:
         results = await self.client.execute(
@@ -61,10 +59,10 @@ class Database:
 
         return GuildSettings(
             _db=self,
-            guild_id=row["guild_id"],
-            leveling=row["leveling"],
-            logging=row["logging"],
-            welcoming=row["welcoming"],
+            guild_id=row[0],
+            leveling=row[1],
+            logging=row[2],
+            welcoming=row[3],
         )
 
 
