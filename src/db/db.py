@@ -10,8 +10,8 @@ class Database:
         self.client = connection
 
     @classmethod
-    async def create(cls, db_url: str) -> Database:
-        self = cls(await sqlite(db_url))
+    async def create(cls, db_path: str) -> Database:
+        self = cls(await sqlite(db_path))
         await self.client.execute(
             "CREATE TABLE IF NOT EXISTS economy_data (id INTEGER PRIMARY KEY, wallet INTEGER, bank INTEGER)"
         )

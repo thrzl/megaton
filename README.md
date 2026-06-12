@@ -6,7 +6,7 @@
 use the .env example:
 ```
 TOKEN= # discord bot token
-DB_URL= # postgres db url
+DB_PATH= # sqlite db path
 STATCORD_KEY= # statcord.com api key
 KSOFT_KEY= # ravy api key
 RAPIDAPI_KEY= # rapidapi key

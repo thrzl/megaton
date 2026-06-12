@@ -1,4 +1,4 @@
-keys = ("DB_URL", "TOKEN", "STATCORD_KEY", "KSOFT_KEY", "RAPIDAPI_KEY")
+keys = ("DB_PATH", "TOKEN", "STATCORD_KEY", "KSOFT_KEY", "RAPIDAPI_KEY")
 from os import environ
 
 

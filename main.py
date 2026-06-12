@@ -39,7 +39,7 @@ client = Megaton(
 
 @client.event
 async def on_ready():
-    client.db = await Database.create(environ["DB_URL"])
+    client.db = await Database.create(environ["DB_PATH"])
 
     client.load_extension("src.cogs.Config")
     print(f"| signed in as {client.user.name} [{client.user.id}]")
