@@ -1,5 +1,3 @@
-import sys
-from logging import INFO, Formatter, StreamHandler, getLogger
 from os import environ
 
 from disnake import Message
@@ -8,16 +6,9 @@ from dotenv import load_dotenv
 from src.bot import Megaton
 from src.db import Database
 from src.utils.check_env import check_env
+from src.utils.log import log
 
 load_dotenv()
-
-logger = getLogger("discord")
-logger.setLevel(INFO)
-handler = StreamHandler(sys.stdout)
-handler.setFormatter(Formatter("%(asctime)s:%(levelname)s:%(name)s: %(message)s"))
-
-logger.addHandler(handler)
-
 check_env()
 
 test_guilds = (
@@ -42,11 +33,11 @@ async def on_ready():
     client.db = await Database.create(environ["DB_PATH"])
 
     client.load_extension("src.cogs.Config")
-    print(f"| signed in as {client.user.name} [{client.user.id}]")
-    print(f"| can see {len(client.guilds)} servers")
-    print(f"| loaded {len(client.slash_commands)} commands in {len(client.cogs)} cogs")
-    print(f"| test guilds: {client._test_guilds or '(none)'}")
-    print(f"| owner ids: {client.owner_ids or '(none)'}")
+    log.info(f"signed in as {client.user.name} [{client.user.id}]")
+    log.info(f"can see {len(client.guilds)} servers")
+    log.info(f"loaded {len(client.slash_commands)} commands in {len(client.cogs)} cogs")
+    log.info(f"test guilds: {client._test_guilds or '(none)'}")
+    log.info(f"owner ids: {client.owner_ids or '(none)'}")
 
 
 @client.event
@@ -65,7 +56,7 @@ async def on_message(message: Message):
                 try:
                     client.load_extension(f"src.cogs.{i}")
                 except Exception as e:
-                    print(e)
+                    log.error(f"failed to load extension: {e}")
             await message.add_reaction("✅")
     return
 

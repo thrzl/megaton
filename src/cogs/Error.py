@@ -16,6 +16,7 @@ from disnake.ext.commands.slash_core import ApplicationCommandInteraction
 from humanize import naturaldelta
 
 from src.bot import Embed
+from src.utils.log import log
 
 
 class Error(Cog):
@@ -24,9 +25,8 @@ class Error(Cog):
 
     @Cog.listener()
     async def on_slash_command(self, ctx):
-        time = str(datetime.now())[:-10]
-        print(
-            f"[{time}] {ctx.author.name} in {ctx.guild.name} ran command: {ctx.application_command.name}"
+        log.info(
+            f"{ctx.author.name} in {ctx.guild.name} ran command: {ctx.application_command.name}"
         )
 
     @Cog.listener()
@@ -60,8 +60,7 @@ class Error(Cog):
             await ctx.send("**Uhh...** one of your arguments is wrong...")
             await ctx.message.add_reaction("❌")
         elif isinstance(error, CommandInvokeError):
-            time = str(datetime.now())[:-10]
-            print(f"[{time}] ERROR: {error.original}")
+            log.error(f"{error.original}")
             embed = Embed(
                 title="**Oh no...**",
                 description="You've caused an error! The devs have been notified and will deal with the problem shortly.\n**Need extra help?** Join the [**Support Server**](https://discord.gg/bNtj2nFnYA)",

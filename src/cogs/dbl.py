@@ -5,6 +5,8 @@ from disnake.ext import commands
 
 import dbl
 
+from src.utils.log import log
+
 
 class TopGG(commands.Cog):
     """
@@ -26,12 +28,12 @@ class TopGG(commands.Cog):
     @commands.Cog.listener()
     async def on_dbl_vote(self, data):
         """An event that is called whenever someone votes for the bot on top.gg."""
-        print("Received an upvote:", "\n", data, sep="")
+        log.info(f"received upvote: {data}")
 
     @commands.Cog.listener()
     async def on_dbl_test(self, data):
         """An event that is called whenever someone tests the webhook system for your bot on top.gg."""
-        print("Received a test upvote:", "\n", data, sep="")
+        log.info(f"received test upvote: {data}")
 
 
 def setup(bot):

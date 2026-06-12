@@ -4,6 +4,8 @@ import os
 import sys
 import subprocess
 
+from src.utils.log import log
+
 
 class Console(commands.Cog, name="Console"):
     def __init__(self, bot):
@@ -26,12 +28,12 @@ class Console(commands.Cog, name="Console"):
                     output = output.replace("\n", "\n")
                     output = output.replace("\s", " ")
                     await message.channel.send(f"```{output}```")
-                    print(output)
+                    log.debug(output)
                 except:
                     # try:
                     # eval(cmd)
                     # except:
-                    print(f"{message.content} is an invalid command")
+                    log.warning(f"invalid command: {message.content}")
                     await message.channel.send(f'Invalid command "`{message.content}`"')
             else:
                 if message.author == self.bot:

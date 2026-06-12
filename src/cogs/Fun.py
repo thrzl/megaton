@@ -11,6 +11,7 @@ from disnake.ext.commands.slash_core import ApplicationCommandInteraction, slash
 
 from src.bot import Embed, Megaton
 from src.utils import CategoryEmbed
+from src.utils.log import log
 
 # from disnake.ext.bridge.context import ApplicationCommandInteraction
 
@@ -241,7 +242,7 @@ class Fun(Cog):
         image = str(member.avatar.url if member.avatar else member.default_avatar.url)[
             :-10
         ]
-        print(image)
+        log.debug(f"triggered avatar: {image}")
         r = await self.http.get(
             f"https://some-random-api.ml/canvas/triggered?avatar={image}"
         )
@@ -427,12 +428,12 @@ class Fun(Cog):
         if not user1:
             user1 = choice(ctx.guild.members)
             user2 = choice(ctx.guild.members)
-            print(
-                f"Chose 2 random members, {user1.display_name} and {user2.display_name}"
+            log.debug(
+                f"chose 2 random members: {user1.display_name} and {user2.display_name}"
             )
         elif not user2:
             user2 = choice(ctx.guild.members)
-            print(f"Chose 1 random member, {user2.display_name}")
+            log.debug(f"chose 1 random member: {user2.display_name}")
         url = "https://rapidapi.p.rapidapi.com/getPercentage"
         querystring = {"fname": user1.display_name, "sname": user2.display_name}
         headers = {

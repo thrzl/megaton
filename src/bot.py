@@ -9,6 +9,7 @@ from disnake.ext.commands.bot import InteractionBot
 from disnake.types.embed import Embed as EmbedData
 from humanize import intword
 from src.db import Database
+from src.utils.log import log
 
 
 class FalseVaccum(Exception):
@@ -119,4 +120,4 @@ class Megaton(InteractionBot):
     def load_extension(self, name: str):  # ty: ignore[invalid-method-override]
         super().load_extension(name)
         n = name.split(".")[-1].replace("_", " ")
-        print(f"| loaded {n.lower()} features")
+        log.info(f"loaded {n.lower()} features")

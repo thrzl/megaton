@@ -6,6 +6,8 @@ from pymongo import MongoClient
 from disnake.ext.forms import ReactionMenu
 from dpymenus import Page, PaginatedMenu
 
+from src.utils.log import log
+
 
 hidden = ["Help", "Error", "Welcome", "stat", "Bot Owner", "Jishaku", "TopGG"]
 
@@ -53,7 +55,7 @@ class Help(commands.Cog, name="Help"):
                 helpdict.append(embed)
                 # helpdict.append()
             continue
-        print(helpdict)
+        log.debug(f"help menu opened, {len(helpdict)} pages")
         menu = PaginatedMenu(ctx)
         menu.allow_multisession()
         menu.show_page_numbers()
@@ -269,7 +271,7 @@ class Help(commands.Cog, name="Help"):
                 continue
             menu = ReactionMenu(ctx, helpdict)
             await menu.start()
-            print("Opened menu")
+            log.debug("help menu opened")
         #    """
         elif command.lower().startswith("mod"):
             embed = Embed(
