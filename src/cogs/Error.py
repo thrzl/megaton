@@ -1,19 +1,21 @@
-from disnake.ext.commands.cog import Cog
-from datetime import datetime, timedelta
 import traceback as tb
-from disnake.ext.commands.slash_core import ApplicationCommandInteraction
-from humanize import naturaldelta
-from bot import Embed
+from datetime import datetime, timedelta
+
+from disnake.ext.commands.cog import Cog
 from disnake.ext.commands.errors import (
-    MissingPermissions,
+    BadArgument,
     BotMissingPermissions,
+    CommandInvokeError,
     CommandNotFound,
     CommandOnCooldown,
+    MissingPermissions,
     MissingRequiredArgument,
-    BadArgument,
-    CommandInvokeError,
     NSFWChannelRequired,
 )
+from disnake.ext.commands.slash_core import ApplicationCommandInteraction
+from humanize import naturaldelta
+
+from src.bot import Embed
 
 
 class Error(Cog):
@@ -33,7 +35,7 @@ class Error(Cog):
     ):  # exceptions, will add more
         if isinstance(error, MissingPermissions):
             embed = Embed(
-                title="<a:suspicious:777565669860442132> **What are you trying to pull here...**",
+                title="**What are you trying to pull here...**",
                 description=f"You don't have the correct permissions to run that command {ctx.author.name}, {error}",
             )
             await ctx.send(embed=embed)
@@ -52,20 +54,16 @@ class Error(Cog):
             )
             await ctx.message.add_reaction("❌")
         elif isinstance(error, MissingRequiredArgument):
-            await ctx.send(
-                "**Uhh...** you missed an argument in the command..."
-            )
+            await ctx.send("**Uhh...** you missed an argument in the command...")
             await ctx.message.add_reaction("❌")
         elif isinstance(error, BadArgument):
-            await ctx.send(
-                "**Uhh...** one of your arguments is wrong..."
-            )
+            await ctx.send("**Uhh...** one of your arguments is wrong...")
             await ctx.message.add_reaction("❌")
         elif isinstance(error, CommandInvokeError):
             time = str(datetime.now())[:-10]
             print(f"[{time}] ERROR: {error.original}")
             embed = Embed(
-                title="<a:dontcry:777565669738151996> **Oh no...**",
+                title="**Oh no...**",
                 description="You've caused an error! The devs have been notified and will deal with the problem shortly.\n**Need extra help?** Join the [**Support Server**](https://discord.gg/bNtj2nFnYA)",
             )
             embed.add_field(name="error", value=f"```{error}```")
@@ -109,7 +107,7 @@ class Error(Cog):
             remaining = error.retry_after
             timestr = naturaldelta(timedelta(seconds=remaining))
             embed = Embed(
-                title="<a:explode:777565669633294407> **slow down!**",
+                title="**slow down!**",
                 description=f"you're on cooldown. wait {timestr} before using `{ctx.application_command.name}` again!",
             )
             await ctx.send(
@@ -117,7 +115,7 @@ class Error(Cog):
             )  # f"**Too fast!** You're on cooldown. `{ctx.message}` has a cooldown of {error.cooldown}. Wait {remaining} before trying again.")
         elif isinstance(error, NSFWChannelRequired):
             embed = Embed(
-                title="<a:nonono:777565669314396220> That's an nsfw command!",
+                title="That's an nsfw command!",
                 description=f"The {ctx.application_command.name} command is nsfw! Please use it in an nsfw channel!",
             )
             await ctx.send(embed=embed)

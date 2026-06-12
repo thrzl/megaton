@@ -1,33 +1,27 @@
-[tool.poetry]
+[project]
 name = "megaton"
 version = "0.1.0"
-description = ""
-authors = ["thrzl <thrizzle@skiff.com>"]
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "aiofiles>=25.1.0",
+    "asyncdagpi>=4.1.5",
+    "asyncpg>=0.31.0",
+    "cachetools>=7.1.4",
+    "colorthief>=0.2.1",
+    "disnake>=2.12.0",
+    "dnspython>=2.8.0",
+    "humanize>=4.15.0",
+    "jishaku>=2.7.5",
+    "ksoftapi>=0.4.1",
+    "pillow>=12.2.0",
+    "python-dotenv>=1.2.2",
+    "sqlalchemy>=2.0.50",
+]
 
-[tool.poetry.dependencies]
-python = "^3.8"
-colorthief = "^0.2.1"
-Pillow = "^9.2.0"
-ksoftapi = "^0.4.1"
-jishaku = "^2.5.1"
-dnspython = "^2.2.1"
-aiofiles = "^22.1.0"
-asyncdagpi = "^4.1.5"
-disnake = "^2.6.0"
-humanize = "^4.4.0"
-SQLAlchemy = "^1.4.41"
-asyncpg = "^0.26.0"
-"betterstatcord.py" = "^3.5.0"
-cachetools = "^5.2.0"
-python-dotenv = "^0.21.0"
-
-[tool.poetry.dev-dependencies]
-bandit = "^1.7.4"
-black = "^22.8.0"
-mypy = "^0.981"
-types-aiofiles = "^22.1.0"
-types-cachetools = "^5.2.1"
-
-[build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+[dependency-groups]
+dev = [
+    "ruff>=0.15.17",
+    "ty>=0.0.49",
+]

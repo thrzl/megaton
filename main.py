@@ -1,21 +1,20 @@
+import sys
+from logging import INFO, Formatter, StreamHandler, getLogger
+from os import environ
+
 from disnake import Message
 from dotenv import load_dotenv
 
+from src.bot import Megaton
+from src.utils.check_env import check_env
+
 load_dotenv()
-
-from os import environ
-
-import sys
-from logging import getLogger, INFO, StreamHandler, Formatter
-
-from bot import Megaton
-from utils.check_env import check_env
 
 logger = getLogger("discord")
 logger.setLevel(INFO)
 handler = StreamHandler(sys.stdout)
-handler.setFormatter(Formatter(f"%(asctime)s:%(levelname)s:%(name)s: %(message)s"))
-# handler.setFormatter(Formatter(f"[{str(datetime.now())[:-10]}] %(name)s: %(message)s"))
+handler.setFormatter(Formatter("%(asctime)s:%(levelname)s:%(name)s: %(message)s"))
+
 logger.addHandler(handler)
 
 check_env()
@@ -54,19 +53,18 @@ async def on_message(message: Message):
 
 
 # client.load_extension("jishaku")
-client.load_extension("cogs.Moderation")
-client.load_extension("cogs.Bot_Owner")
-# client.load_extension("cogs.Welcome")
-# client.load_extension("cogs.Help")
-client.load_extension("cogs.Economy")
-client.load_extension("cogs.Fun")
-# client.load_extension("cogs.stat")
-client.load_extension("cogs.Utility")
-# client.load_extension("cogs.Music")
-# client.load_extension("cogs.Config")
-# client.load_extension("cogs.Level")
-client.load_extension("cogs.Error")
-client.load_extension("cogs.Bot_Info")
+# client.load_extension("src.cogs.Moderation")
+client.load_extension("src.cogs.Bot_Owner")
+# client.load_extension("src.cogs.Welcome")
+# client.load_extension("src.cogs.Help")
+# client.load_extension("src.cogs.Economy")
+# client.load_extension("src.cogs.Fun")
+client.load_extension("src.cogs.Utility")
+# client.load_extension("src.cogs.Music")
+# client.load_extension("src.cogs.Config")
+# client.load_extension("src.cogs.Level")
+client.load_extension("src.cogs.Error")
+client.load_extension("src.cogs.Bot_Info")
 
 
 client.run()

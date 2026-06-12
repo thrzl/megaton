@@ -1,11 +1,13 @@
 import asyncio
-import re
 import math
+import re
+
 import discord
-from dpymenus import Page, PaginatedMenu
 import ksoftapi
 import lavalink
 from disnake.ext import commands, menus
+from dpymenus import Page, PaginatedMenu
+
 from bot import Embed
 
 kclient = ksoftapi.Client("fef9dba21ffb0adbec3337bbc0ac4a6ee74dcc11")
@@ -202,14 +204,14 @@ class Music(commands.Cog):
                 player.add(requester=ctx.author.id, track=track)
                 que[ctx.guild.id].append(track)
             embed = Embed(
-                title="<a:cdspin:777565668580261909> Playlist Enqueued!",
-                description=f'{results["playlistInfo"]["name"]} - {len(tracks)} tracks',
+                title="Playlist Enqueued!",
+                description=f"{results['playlistInfo']['name']} - {len(tracks)} tracks",
                 color=discord.Color.green(),
             )
         else:
             track = results["tracks"][0]
             embed = Embed(
-                title=f"<a:cdspin:777565668580261909> Added {track['info']['title']} to the queue",
+                title=f"Added {track['info']['title']} to the queue",
                 color=discord.Color.green(),
             )
             embed.add_field(
@@ -380,13 +382,13 @@ class Music(commands.Cog):
                         end = len(que[ctx.guild.id])
                     if int(que[ctx.guild.id].index(t)) == 0:
                         embed.add_field(
-                            name=f"1. <a:cdspin:777565668580261909> {player.current.title}",
+                            name=f"1. {player.current.title}",
                             value=f"**Duration:** {lavalink.format_time(int(current['info']['length']))}\n**Author:** {current['info']['author']}",
                             inline=False,
                         )
                     else:
                         embed.add_field(
-                            name=f"{que[ctx.guild.id].index(t)+1}. {t['info']['title']}",
+                            name=f"{que[ctx.guild.id].index(t) + 1}. {t['info']['title']}",
                             value=f"**Duration:** {lavalink.format_time(int(t['info']['length']))}\n**Author:** {t['info']['author']}",
                             inline=False,
                         )

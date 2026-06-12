@@ -1,10 +1,10 @@
-from disnake.ext import commands
-import discord
 import asyncio
-import time
+
+import discord
+from disnake.ext import commands
 from disnake.ext.commands.converter import RoleConverter, TextChannelConverter
 
-Megaton, Embed
+from src.bot import Embed, Megaton
 
 
 class Config(commands.Cog):
@@ -63,6 +63,7 @@ class Config(commands.Cog):
             await msg.add_reaction("2️⃣")
             await msg.add_reaction("3️⃣")
             await msg.add_reaction("❌")
+
             # await msg.add_reaction("3️⃣")
             def check(reaction):
                 acceptedemoji = ["❌", "1️⃣", "2️⃣", "3️⃣"]

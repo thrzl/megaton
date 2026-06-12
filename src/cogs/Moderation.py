@@ -1,19 +1,21 @@
+import asyncio
 from datetime import timedelta
+from os import environ
 from random import choice
 from sqlite3 import TimestampFromTicks
-from disnake.errors import HTTPException, Forbidden
+from typing import List, Optional
+
+import ksoftapi
+from disnake import Color, Member, Object
+from disnake.errors import Forbidden, HTTPException
 from disnake.ext import commands
 from disnake.ext.commands import slash_command
-from disnake import Color, Member, Object
-from disnake.ext.commands.slash_core import ApplicationCommandInteraction
-import asyncio
 from disnake.ext.commands.cooldowns import BucketType
-import ksoftapi
-from bot import Megaton, HeirarchyErrorType, HeirarchyError, Embed
+from disnake.ext.commands.slash_core import ApplicationCommandInteraction
 from disnake.utils import get
-from typing import List, Optional
-from os import environ
-from utils.data import Moderation as _mod
+
+from src.bot import Embed, HeirarchyError, HeirarchyErrorType, Megaton
+from src.utils.data import Moderation as _mod
 
 kclient = ksoftapi.Client(environ.get("KSOFT_KEY"))
 
@@ -82,7 +84,7 @@ class Moderation(commands.Cog):
     async def scan(self, ctx: ApplicationCommandInteraction, *args):
         ulist: List[Member] = []
         await ctx.send(
-            f"Beginning Scan... Estimated Duration: {len(ctx.guild.members)*3} seconds"
+            f"Beginning Scan... Estimated Duration: {len(ctx.guild.members) * 3} seconds"
         )
         for member in ctx.guild.members:
             if not member.bot:

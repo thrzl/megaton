@@ -1,12 +1,12 @@
-from typing import Optional
-from disnake import Intents, Member, Embed as _Embed, Activity, ActivityType
-from disnake.types.embed import Embed as EmbedData
-from disnake.ext.commands.bot import InteractionBot
+from asyncio import sleep
 from datetime import datetime, timedelta
 from enum import Enum
-from os import environ
-from asyncio import sleep
-from statcord import StatcordClient
+from typing import Optional
+
+from disnake import Activity, ActivityType, Intents, Member
+from disnake import Embed as _Embed
+from disnake.ext.commands.bot import InteractionBot
+from disnake.types.embed import Embed as EmbedData
 from humanize import intword
 
 
@@ -58,9 +58,9 @@ class Embed(_Embed):
                 )
             if self._footer:
                 self._footer["text"] = self._footer["text"].lower()
-                self.set_footer(**{k: v for k, v in self._footer.items()})  # type: ignore
+                self.set_footer(**{k: v for k, v in self._footer.items()})
             if self._author:
-                self.set_author(**{k: v for k, v in self._author.items()})  # type: ignore
+                self.set_author(**{k: v for k, v in self._author.items()})
             if self.title:
                 self.title = self.title.lower()
             if self.description:
@@ -69,7 +69,7 @@ class Embed(_Embed):
 
 
 class Megaton(InteractionBot):
-    def __init__(self, token: str, intents: Intents = None, *args, **kwargs):
+    def __init__(self, token: str, intents: Optional[Intents] = None, *args, **kwargs):
         super().__init__()
         if not intents:
             intents = Intents.all()
@@ -77,14 +77,6 @@ class Megaton(InteractionBot):
         self.token = token
         self.Embed = Embed
         self.loop.create_task(self.ch_pr())
-        self.statcord_client = StatcordClient(self, environ.get("STATCORD_KEY"))
-        # dbl = dblpy.DBLClient(
-        #     client,
-        #     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Ijc2NjgxODkxMTUwNTA4ODUxNCIsImJvdCI6dHJ1ZSwiaWF0IjoxNjA2MzI0Mjc5fQ.ADjcN7pcHL9D5lfnGYHPQH8lXQyvqxzcWg7jSHLIgrs",
-        #     True,
-        #     webhook_auth="tPL8UP3qyn9XikHOA9357QpGEEawK2bv",
-        #     webhook_path="/dblhookmegaton",
-        # )
 
     def run(self):
         super().run(self.token)
@@ -120,7 +112,7 @@ class Megaton(InteractionBot):
             )
             await sleep(120)
 
-    def load_extension(self, name: str):
+    def load_extension(self, name: str):  # ty: ignore[invalid-method-override]
         super().load_extension(name)
         n = name.split(".")[-1].replace("_", " ")
         print(f"| loaded {n.lower()} features")

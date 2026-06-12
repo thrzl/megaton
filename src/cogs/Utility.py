@@ -1,24 +1,24 @@
-from ast import Bytes
-from disnake.ext import commands
-from disnake.ext.commands import slash_command
-from disnake import Member, Color, Asset, PartialEmoji
-from datetime import date, timedelta, datetime
-from disnake.enums import UserFlags
+import asyncio
+import json
 import os
 import random
-import aiohttp
-import aiofiles
-from aiohttp import *
-from colorthief import ColorThief
-import json
-import asyncio
-from disnake.ext.commands.slash_core import ApplicationCommandInteraction
-from bot import Embed, Megaton
+from ast import Bytes
+from datetime import date, datetime, timedelta
 from io import BytesIO
 
-from utils.data import Error
-
+import aiofiles
+import aiohttp
+from aiohttp import *
 from cachetools import LRUCache
+from colorthief import ColorThief
+from disnake import Asset, Color, Member, PartialEmoji
+from disnake.enums import UserFlags
+from disnake.ext import commands
+from disnake.ext.commands import slash_command
+from disnake.ext.commands.slash_core import ApplicationCommandInteraction
+
+from src.bot import Embed, Megaton
+from src.utils.data import Error
 
 
 async def get_color(img):
@@ -46,7 +46,9 @@ class Utility(commands.Cog):
             text = rej["text"]
             lang = rej["lang"]
             embed = Embed(title=f":flag_{lang}: translation:", description=text)
-            embed.set_author(name=ctx.author.name, icon_url=ctx.author.avatar.url)
+            embed.set_author(
+                name=ctx.author.name, icon_url=ctx.author.display_avatar.url
+            )
             await ctx.send(embed=embed)
 
     @slash_command(
@@ -56,6 +58,8 @@ class Utility(commands.Cog):
         usage="invite",
     )
     async def server(self, ctx: ApplicationCommandInteraction):
+        if not ctx.guild:
+            return
         clr = ", ".join(await get_color(BytesIO(await ctx.guild.icon.read())))
         red, blue, green = [int(c) for c in clr]
         color = Color.from_rgb(red, green, blue)
@@ -67,7 +71,7 @@ class Utility(commands.Cog):
         embed.add_field(name="Owner", value=ctx.guild.owner, inline=True)
         embed.add_field(name="Server ID", value=ctx.guild.id, inline=True)
         embed.add_field(
-            name="<a:greyscaleearth:777565668442374245> region",
+            name="region",
             value=ctx.guild.region,
             inline=True,
         )

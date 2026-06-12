@@ -1,27 +1,29 @@
-from typing import List
-from disnake import Member, File, Color, Message
-from disnake.ext.commands.cooldowns import BucketType
-from disnake.ext.commands.core import cooldown, is_nsfw
-from disnake.ext.commands.cog import Cog
-from disnake.ext.commands.slash_core import slash_command
-from disnake.ext.commands.slash_core import ApplicationCommandInteraction
 import json
 from random import choice
-from utils import CategoryEmbed
+from typing import List
+
 import ksoftapi
-from bot import Embed, Megaton
+from disnake import Color, File, Member, Message
+from disnake.ext.commands.cog import Cog
+from disnake.ext.commands.cooldowns import BucketType
+from disnake.ext.commands.core import cooldown, is_nsfw
+from disnake.ext.commands.slash_core import ApplicationCommandInteraction, slash_command
+
+from src.bot import Embed, Megaton
+from src.utils import CategoryEmbed
 
 # from disnake.ext.bridge.context import ApplicationCommandInteraction
 
 kc = ksoftapi.Client("fef9dba21ffb0adbec3337bbc0ac4a6ee74dcc11")
 import os
+
 import aiofiles
 from asyncdagpi.client import Client
 from asyncdagpi.image_features import ImageFeatures
 
 dc = Client("OC0VYkXzJ8yxtkm0H71x35BTJRUkcc5rNWzgGsf2qPGUrN3cATAnfDCDE24aD0Ex")
-from PIL import Image
 from aiohttp import ClientSession
+from PIL import Image
 
 
 class Fun(Cog):
@@ -246,9 +248,7 @@ class Fun(Cog):
         f = await aiofiles.open(f"{member.id}triggered.gif", mode="wb")
         triggeredgif = await r.read()
         if int(r.status) != 200:
-            await ctx.send(
-                f"somethin went wrong. we're looking into it, don't worry."
-            )
+            await ctx.send(f"somethin went wrong. we're looking into it, don't worry.")
             return
         await f.write(triggeredgif)
         tri = Image.open(f)
@@ -353,9 +353,7 @@ class Fun(Cog):
         else:
             msg = msg["message"]
             if len(msg.embeds) > 0:
-                await ctx.send(
-                    "Here's the message: ", embed=msg.embeds[0]
-                )
+                await ctx.send("Here's the message: ", embed=msg.embeds[0])
                 return
             else:
                 embed = Embed(
@@ -496,9 +494,7 @@ class Fun(Cog):
                     msg.author == ctx.author
                     or msg.author.guild_permissions.kick_members == True
                 ):
-                    await ctx.send(
-                        f"The game was ended by {msg.author.mention}."
-                    )
+                    await ctx.send(f"The game was ended by {msg.author.mention}.")
                     return
             await ctx.send(
                 f"{msg.author.mention} ruined it! The game has ended! You had a total of {points} points!"
@@ -520,9 +516,7 @@ class Fun(Cog):
                         msg.author == ctx.author
                         or msg.author.guild_permissions.kick_members == True
                     ):
-                        await ctx.send(
-                            f"The game was ended by {msg.author.mention}."
-                        )
+                        await ctx.send(f"The game was ended by {msg.author.mention}.")
                         return
                 await ctx.send(
                     f"{msg.author.mention} ruined it! The game has ended! You had a total of {points} points!"
@@ -586,7 +580,20 @@ class Fun(Cog):
             "Kakaw! ",
             "Chirp Chirp! ",
         )
-        birdemoji = ["🐦", "🐤", "🐣", "🐥", "🦃", "🦚", "🦜", "🦢", "🕊", "🦉", "🦆", "🦅"]
+        birdemoji = [
+            "🐦",
+            "🐤",
+            "🐣",
+            "🐥",
+            "🦃",
+            "🦚",
+            "🦜",
+            "🦢",
+            "🕊",
+            "🦉",
+            "🦆",
+            "🦅",
+        ]
         title = choice(birdtitle) + choice(birdemoji)
         embed = Embed(title=title)
         embed.set_footer(text=f"did you know? {fact}")

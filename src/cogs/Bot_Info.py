@@ -1,9 +1,10 @@
-from disnake.ext.commands.cog import Cog
-from disnake.ext.commands.slash_core import slash_command
-import disnake
 import sys
 
-from bot import Megaton, Embed
+import disnake
+from disnake.ext.commands.cog import Cog
+from disnake.ext.commands.slash_core import slash_command
+
+from src.bot import Embed, Megaton
 
 
 class Bot_Info(Cog):
@@ -95,9 +96,7 @@ class Bot_Info(Cog):
 
     @slash_command(name="ping", description="Returns the bot ping.")
     async def ping(self, ctx):
-        await ctx.send(
-            f"**Pong!** Ping is {round(self.bot.latency * 1000)}ms."
-        )
+        await ctx.send(f"**Pong!** Ping is {round(self.bot.latency * 1000)}ms.")
 
     @slash_command(
         name="about",

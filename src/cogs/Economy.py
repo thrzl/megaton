@@ -1,12 +1,13 @@
-from disnake.ext.commands.core import cooldown, Cog
-from disnake.ext.commands.cooldowns import BucketType
-from disnake import Member
-from random import randint, choice
-from disnake.ext.commands.slash_core import ApplicationCommandInteraction, slash_command
-from bot import Megaton, Embed
-from db import EconomyData
+from random import choice, randint
 
-from utils.data import Economy as _eco
+from disnake import Member
+from disnake.ext.commands.cooldowns import BucketType
+from disnake.ext.commands.core import Cog, cooldown
+from disnake.ext.commands.slash_core import ApplicationCommandInteraction, slash_command
+
+from src.bot import Embed, Megaton
+from src.db import EconomyData
+from src.utils.data import Economy as _eco
 
 
 class Economy(Cog):
@@ -61,9 +62,7 @@ class Economy(Cog):
     async def dep(self, ctx: ApplicationCommandInteraction, amt: int):
         user = await EconomyData.get(ctx.author.id)
         if (user.wallet) < amt:
-            await ctx.send(
-                "You don't have enough money in your wallet for that!"
-            )
+            await ctx.send("You don't have enough money in your wallet for that!")
         else:
             await EconomyData.deposit(ctx.author.id, amt)
             await ctx.send(
@@ -80,14 +79,10 @@ class Economy(Cog):
     async def withdraw(self, ctx: ApplicationCommandInteraction, amt: int):
         user = await EconomyData.get(ctx.author.id)
         if (user["bank"]) < amt:
-            await ctx.send(
-                "You don't have enough money in the bank for that!"
-            )
+            await ctx.send("You don't have enough money in the bank for that!")
         else:
             await EconomyData.withdraw(ctx.author.id, amt)
-            await ctx.send(
-                f"You just withdrew **{amt}** coins from your bank account!"
-            )
+            await ctx.send(f"You just withdrew **{amt}** coins from your bank account!")
 
     @slash_command(name="beg", description="beg strangers for money!", usage="beg")
     @cooldown(1, 30, BucketType.user)
