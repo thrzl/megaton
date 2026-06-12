@@ -73,7 +73,7 @@ class Megaton(InteractionBot):
     db: Optional[Database]
 
     def __init__(self, token: str, intents: Optional[Intents] = None, *args, **kwargs):
-        super().__init__()
+        super().__init__(**kwargs)
         if not intents:
             intents = Intents.all()
             intents.message_content = True

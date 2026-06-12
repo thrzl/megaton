@@ -20,8 +20,20 @@ logger.addHandler(handler)
 
 check_env()
 
+test_guilds = (
+    [int(guild) for guild in environ["TEST_GUILDS"].split(",")]
+    if environ.get("TEST_GUILDS")
+    else []
+)
+owner_ids = (
+    [int(owner) for owner in environ["OWNER_IDS"].split(",")]
+    if environ.get("OWNER_IDS")
+    else []
+)
 client = Megaton(
     token=environ["TOKEN"],
+    test_guilds=test_guilds,
+    owner_ids=owner_ids,
 )
 
 
@@ -33,6 +45,8 @@ async def on_ready():
     print(f"| signed in as {client.user.name} [{client.user.id}]")
     print(f"| can see {len(client.guilds)} servers")
     print(f"| loaded {len(client.slash_commands)} commands in {len(client.cogs)} cogs")
+    print(f"| test guilds: {client._test_guilds or '(none)'}")
+    print(f"| owner ids: {client.owner_ids or '(none)'}")
 
 
 @client.event
