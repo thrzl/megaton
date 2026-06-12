@@ -1,99 +1,76 @@
 from __future__ import annotations
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-from sqlalchemy.future import select
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy import BigInteger, Integer, Column
-from os import environ
 from typing import Optional
-from cachetools import LRUCache, TTLCache
+from aiosqlite import connect as sqlite
+from msgspec import Struct
 
-Base = declarative_base()
-engine = create_async_engine(url=environ["DB_URL"])
-session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+class Database:
+    __slots__ = ("client",)
+    def __init__(self, db_url: str):
+        self.client = sqlite(db_url)
 
+    async def get_economy_data(self, item_id: int) -> EconomyData:
+        async with self.client as db:
+            results = await db.execute("SELECT * FROM economy_data WHERE id = ?", (item_id,))
+            row = await results.fetchone()
+            if row is None:
+                new_row = EconomyData(_db=self, id=item_id, wallet=0, bank=0)
+                await db.execute("INSERT INTO economy_data (id, wallet, bank) VALUES (?, ?, ?)", (new_row.id, new_row.wallet, new_row.bank))
+                await db.commit()
+                return new_row
 
-class Serializable:
-    def serialize(self):
-        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+            return EconomyData(_db=self, id=row["id"], wallet=row["wallet"], bank=row["bank"])
+            
+class DatabaseModel(Struct):
+    _db: Database
 
-    @classmethod
-    def from_data(self, data: dict):
-        return self(**data)
+class EconomyData(DatabaseModel):
+    id: int
+    wallet: int
+    bank: int
 
+    async def update_wallet(self, wallet_amount: int) -> None:
+        async with self._db.client as db:
+            self.wallet += wallet_amount
+            await db.execute("UPDATE economy_data SET wallet = wallet + ? WHERE id = ?", (wallet_amount, self.id))
+            await db.commit()
 
-class EconomyData(Base, Serializable):  # type: ignore
-    __tablename__ = "economy"
-    id = Column(BigInteger, autoincrement=True, primary_key=True)
-    wallet = Column(Integer, nullable=False, default=0)
-    bank = Column(Integer, nullable=False, default=0)
-    cache: LRUCache[int, dict] = LRUCache(maxsize=1024)
+    async def update_bank(self, bank_amount: int) -> None:
+        async with self._db.client as db:
+            self.bank += bank_amount
+            await db.execute("UPDATE economy_data SET bank = bank + ? WHERE id = ?", (bank_amount, self.id))
+            await db.commit()
 
-    @classmethod
-    async def update_wallet(cls, item_id: int, wallet_amount: int) -> None:
-        eco = await cls.get(item_id)
-        async with session() as s:
-            eco.wallet += wallet_amount
-            s.add(eco)
-            await s.commit()
-        cls.cache[item_id] = eco.serialize()
+    async def withdraw(self, amount: int) -> None:
+        async with self._db.client as db:
+            self.wallet += amount
+            self.bank -= amount
+            await db.execute("UPDATE economy_data SET wallet = wallet + ?, bank = bank - ? WHERE id = ?", (amount, amount, self.id))
+            await db.commit()
 
-    @classmethod
-    async def get(cls, item_id: int) -> EconomyData:
-        if item_id in cls.cache:
-            return cls.from_data(cls.cache[item_id])
-        query = select(cls).where(cls.id == item_id)
-        async with session() as s:
-            results = await s.execute(query)
-            if not (result := results.first()):
-                d = EconomyData(id=item_id, wallet=0, bank=0)
-                s.add(d)
-                await s.commit()
-                cls.cache[item_id] = d.serialize()
-                return d
-
-            cls.cache[item_id] = result[0].serialize()
-
-        return result[0]
-
-    @classmethod
-    async def update_bank(cls, item_id: int, bank_amount: int) -> None:
-        async with session() as s:
-            eco = await cls.get(item_id)
-            eco.bank = bank_amount
-            await s.commit()
-            cls.cache[item_id] = eco.serialize()
-
-    @classmethod
-    async def withdraw(cls, item_id: int, amount: int) -> None:
-        async with session() as s:
-            eco = await cls.get(item_id)
-            eco.wallet += amount
-            eco.bank -= amount
-            await s.commit()
-            cls.cache[item_id] = eco.serialize()
-
-    @classmethod
-    async def deposit(cls, item_id: int, amount: int) -> None:
-        async with session() as s:
-            eco = await cls.get(item_id)
-            eco.wallet -= amount
-            eco.bank += amount
-            await s.commit()
-            cls.cache[item_id] = eco.serialize()
+    async def deposit(self, amount: int) -> None:
+        async with self._db.client as db:
+            self.wallet -= amount
+            self.bank += amount
+            await db.execute("UPDATE economy_data SET wallet = wallet - ?, bank = bank + ? WHERE id = ?", (amount, amount, self.id))
+            await db.commit()
 
     def __repr__(self):
         return f"<EconomyData(id={self.id})>"
 
 
-class GuildSettings(Base, Serializable):  # type: ignore
+class DatabaseModel(Struct):
+    def __init__(self, db, **kwargs):
+        self.db = db
+        for k, v in kwargs.items():
+            setattr(self, k, v)
+
+class GuildSettings(Base):  # type: ignore
     __tablename__ = "guild_settings"
     guild_id = Column(BigInteger, primary_key=True)
     leveling = Column(BigInteger, nullable=True)
     logging = Column(BigInteger, nullable=True)
     welcoming = Column(BigInteger, nullable=True)
     autorole = Column(BigInteger, nullable=True)
-    cache: TTLCache[int, dict] = TTLCache(maxsize=1024, ttl=300)
 
     @classmethod
     async def update_leveling_channel(cls, guild_id: int, channel_id: int):
