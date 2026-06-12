@@ -8,6 +8,7 @@ from disnake import Embed as _Embed
 from disnake.ext.commands.bot import InteractionBot
 from disnake.types.embed import Embed as EmbedData
 from humanize import intword
+from src.db import Database
 
 
 class FalseVaccum(Exception):
@@ -69,6 +70,8 @@ class Embed(_Embed):
 
 
 class Megaton(InteractionBot):
+    db: Optional[Database]
+
     def __init__(self, token: str, intents: Optional[Intents] = None, *args, **kwargs):
         super().__init__()
         if not intents:
@@ -77,6 +80,7 @@ class Megaton(InteractionBot):
         self.token = token
         self.Embed = Embed
         self.loop.create_task(self.ch_pr())
+        self.db = None
 
     def run(self):
         super().run(self.token)

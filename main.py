@@ -6,6 +6,7 @@ from disnake import Message
 from dotenv import load_dotenv
 
 from src.bot import Megaton
+from src.db import Database
 from src.utils.check_env import check_env
 
 load_dotenv()
@@ -26,6 +27,7 @@ client = Megaton(
 
 @client.event
 async def on_ready():
+    client.db = await Database.create(environ["DB_URL"])
     print(f"| signed in as {client.user.name} [{client.user.id}]")
     print(f"| can see {len(client.guilds)} servers")
     print(f"| loaded {len(client.slash_commands)} commands in {len(client.cogs)} cogs")
@@ -52,7 +54,6 @@ async def on_message(message: Message):
     return
 
 
-# client.load_extension("jishaku")
 # client.load_extension("src.cogs.Moderation")
 client.load_extension("src.cogs.Bot_Owner")
 # client.load_extension("src.cogs.Welcome")
