@@ -30,10 +30,6 @@ client = Megaton(
 
 @client.event
 async def on_ready():
-    client.db = await Database.create(environ["DB_PATH"])
-
-    client.load_extension("src.cogs.Config")
-    client.load_extension("src.cogs.Welcome")
     log.info(f"signed in as {client.user.name} [{client.user.id}]")
     log.info(f"can see {len(client.guilds)} servers")
     log.info(f"loaded {len(client.slash_commands)} commands in {len(client.cogs)} cogs")
@@ -46,32 +42,41 @@ async def on_message(message: Message):
     if message.author.bot or message.author.id not in client.owner_ids:
         return
     if message.content.startswith(client.user.mention):
+        args = message.content.split(" ")[1:]
         if "reload" in message.content:
             c = [i for i in client.cogs]
             for i in c:
                 client.reload_extension(f"src.cogs.{i}")
             await message.add_reaction("✅")
-        elif message.content.startswith("load"):
-            c = [i for i in message.content.split(" ")[1:]]
-            for i in c:
+        elif args[0] == "load":
+            for cog in args[1:]:
                 try:
-                    client.load_extension(f"src.cogs.{i}")
+                    client.load_extension(f"src.cogs.{cog}")
                 except Exception as e:
                     log.error(f"failed to load extension: {e}")
             await message.add_reaction("✅")
     return
 
 
-# client.load_extension("src.cogs.Moderation")
-client.load_extension("src.cogs.Bot_Owner")
-# client.load_extension("src.cogs.Help")
-# client.load_extension("src.cogs.Economy")
-# client.load_extension("src.cogs.Fun")
-client.load_extension("src.cogs.Utility")
-# client.load_extension("src.cogs.Music")
-# client.load_extension("src.cogs.Level")
-client.load_extension("src.cogs.Error")
-client.load_extension("src.cogs.Bot_Info")
-
-
-client.run()
+async def main():
+    client.db = await Database.create(environ["DB_PATH"])
+    ENABLED_COGS = (
+        "Config",
+        "Welcome",
+        # "Moderation",
+        "Bot_Owner",
+        # "Help",
+        # "Economy",
+        # "Fun",
+        "Utility",
+        # "Music",
+        # "Level",
+        "Error",
+        "Bot_Info",
+    )
+    for cog in ENABLED_COGS:
+        try:
+            client.load_extension(f"src.cogs.{cog}")
+        except Exception as e:
+            log.error(f"failed to load extension: {e}")
+    await client.start(client.token)
