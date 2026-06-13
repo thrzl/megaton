@@ -1,6 +1,7 @@
 from __future__ import annotations
 from aiosqlite import connect as sqlite, Connection
-from msgspec import Struct
+from msgspec import Struct, field
+from math import floor, sqrt
 
 
 class Database:
@@ -17,6 +18,9 @@ class Database:
         )
         await self.client.execute(
             "CREATE TABLE IF NOT EXISTS guild_settings (guild_id INTEGER PRIMARY KEY, leveling INTEGER, logging INTEGER, welcoming INTEGER)"
+        )
+        await self.client.execute(
+            "CREATE TABLE IF NOT EXISTS level_data (user_id INTEGER, guild_id INTEGER, xp INTEGER, PRIMARY KEY (user_id, guild_id))"
         )
         return self
 
@@ -64,6 +68,26 @@ class Database:
             logging=row[2],
             welcoming=row[3],
         )
+
+    async def get_level_data(self, user_id: int, guild_id: int) -> LevelData | None:
+        results = await self.client.execute(
+            "SELECT * FROM level_data WHERE user_id = ? AND guild_id = ?",
+            (user_id, guild_id),
+        )
+        row = await results.fetchone()
+        if row is None:
+            guild_settings = await self.get_guild_settings(guild_id)
+            if guild_settings.leveling == 0:
+                return None
+            new_row = LevelData(_db=self, user_id=user_id, guild_id=guild_id, xp=0)
+            await self.client.execute(
+                "INSERT INTO level_data (user_id, guild_id, xp) VALUES (?, ?, ?)",
+                (new_row.user_id, new_row.guild_id, new_row.xp),
+            )
+            await self.client.commit()
+            return new_row
+
+        return LevelData(_db=self, user_id=row[0], guild_id=row[1], xp=row[2])
 
 
 class DatabaseModel(Struct):
@@ -145,3 +169,29 @@ class GuildSettings(DatabaseModel):
 
     def __repr__(self):
         return f"<GuildSettings(guild_id={self.guild_id})>"
+
+
+class LevelData(DatabaseModel):
+    user_id: int
+    guild_id: int
+    _xp: int = field(name="xp", default=0)
+
+    async def update_xp(self, xp_amount: int) -> None:
+        self._xp += xp_amount
+        await self._db.client.execute(
+            "UPDATE level_data SET xp = xp + ? WHERE user_id = ? AND guild_id = ?",
+            (xp_amount, self.user_id, self.guild_id),
+        )
+        await self._db.client.commit()
+
+    @property
+    def level(self) -> int:
+        return floor(sqrt(self._xp / 2))
+
+    @property
+    def xp(self) -> int:
+        # get the xp above the current level
+        return self._xp - (self.level * self.level * 2)
+
+    def __repr__(self):
+        return f"<LevelData(user_id={self.user_id}, guild_id={self.guild_id})>"

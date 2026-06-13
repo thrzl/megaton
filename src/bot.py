@@ -1,7 +1,7 @@
 from asyncio import sleep
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Optional
+from typing import Optional, override, Any
 
 from disnake import Activity, ActivityType, Intents, Member
 from disnake import Embed as _Embed
@@ -44,7 +44,9 @@ class Embed(_Embed):
         "preserve_case",
     )
 
-    def __init__(self, color=0x2F3136, preserve_case=False, **kwargs):
+    def __init__(
+        self, color: int = 0x2F3136, preserve_case: bool = False, **kwargs: Any
+    ):
         super().__init__(color=color, **kwargs)
         self.preserve_case = preserve_case
 
@@ -73,7 +75,9 @@ class Embed(_Embed):
 class Megaton(InteractionBot):
     db: Optional[Database]
 
-    def __init__(self, token: str, intents: Optional[Intents] = None, *args, **kwargs):
+    def __init__(
+        self, token: str, intents: Optional[Intents] = None, *args: Any, **kwargs: Any
+    ):
         super().__init__(**kwargs)
         if not intents:
             intents = Intents.all()
@@ -83,6 +87,7 @@ class Megaton(InteractionBot):
         self.loop.create_task(self.ch_pr())
         self.db = None
 
+    @override
     def run(self):
         super().run(self.token)
 
@@ -117,7 +122,8 @@ class Megaton(InteractionBot):
             )
             await sleep(120)
 
-    def load_extension(self, name: str):  # ty: ignore[invalid-method-override]
-        super().load_extension(name)
+    @override
+    def load_extension(self, name: str, *, package: str | None = None):  # ty: ignore[invalid-method-override]
+        super().load_extension(name, package=package)
         n = name.split(".")[-1].replace("_", " ")
         log.info(f"loaded {n.lower()} features")
