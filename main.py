@@ -63,7 +63,7 @@ async def on_message(message: Message):
 
 # client.load_extension("src.cogs.Moderation")
 client.load_extension("src.cogs.Bot_Owner")
-# client.load_extension("src.cogs.Welcome")
+client.load_extension("src.cogs.Welcome")
 # client.load_extension("src.cogs.Help")
 # client.load_extension("src.cogs.Economy")
 # client.load_extension("src.cogs.Fun")
