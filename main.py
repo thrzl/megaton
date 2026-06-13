@@ -33,6 +33,7 @@ async def on_ready():
     client.db = await Database.create(environ["DB_PATH"])
 
     client.load_extension("src.cogs.Config")
+    client.load_extension("src.cogs.Welcome")
     log.info(f"signed in as {client.user.name} [{client.user.id}]")
     log.info(f"can see {len(client.guilds)} servers")
     log.info(f"loaded {len(client.slash_commands)} commands in {len(client.cogs)} cogs")
@@ -63,7 +64,6 @@ async def on_message(message: Message):
 
 # client.load_extension("src.cogs.Moderation")
 client.load_extension("src.cogs.Bot_Owner")
-client.load_extension("src.cogs.Welcome")
 # client.load_extension("src.cogs.Help")
 # client.load_extension("src.cogs.Economy")
 # client.load_extension("src.cogs.Fun")
