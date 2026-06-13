@@ -1,0 +1,7 @@
+{
+  "reportUnannotatedClassAttribute": false,
+  "reportImplicitOverride": false,
+  "reportUnusedCallResult": false,
+  "reportExplicitAny": false,
+  "reportAny": false
+}
