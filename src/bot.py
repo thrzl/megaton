@@ -123,7 +123,7 @@ class Megaton(InteractionBot):
             await sleep(120)
 
     @override
-    def load_extension(self, name: str, *, package: str | None = None):  # ty: ignore[invalid-method-override]
+    def load_extension(self, name: str, *, package: str | None = None):
         super().load_extension(name, package=package)
         n = name.split(".")[-1].replace("_", " ")
         log.info(f"loaded {n.lower()} features")

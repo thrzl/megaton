@@ -1,7 +1,14 @@
+from __future__ import annotations
 from typing import Optional
-
-import disnake
+from disnake import ui, components
 from disnake.ext import commands
+from disnake import (
+    GuildCommandInteraction,
+    MessageInteraction,
+    Guild,
+    TextChannel,
+    ChannelType,
+)
 
 from src.bot import Embed, Megaton
 
@@ -17,12 +24,17 @@ from src.utils.emojis import (
 )
 
 
-class ConfigSelect(disnake.ui.StringSelect):
-    def __init__(self, db: Database, bot: Megaton, config_inter: disnake.Interaction):
+class ConfigSelect(ui.StringSelect[ui.View]):
+    def __init__(
+        self,
+        db: Database,
+        bot: Megaton,
+        config_inter: GuildCommandInteraction,
+    ):
         options = [
-            disnake.SelectOption(label="leveling", emoji=STAR_EMOJI),
-            disnake.SelectOption(label="welcome messages", emoji=WELCOME_EMOJI),
-            disnake.SelectOption(label="exit", emoji=CROSS_EMOJI),
+            components.SelectOption(label="leveling", emoji=STAR_EMOJI),
+            components.SelectOption(label="welcome messages", emoji=WELCOME_EMOJI),
+            components.SelectOption(label="exit", emoji=CROSS_EMOJI),
         ]
         super().__init__(
             placeholder="select a setting to configure",
@@ -35,14 +47,14 @@ class ConfigSelect(disnake.ui.StringSelect):
         self.bot = bot
         self.config_inter = config_inter
 
-    async def callback(self, interaction: disnake.MessageInteraction) -> None:
+    async def callback(self, interaction: MessageInteraction) -> None:
         selected = self.values[0]
 
         if selected == "exit":
             await interaction.delete_original_message()
             return
 
-        guild: Optional[disnake.Guild] = interaction.guild
+        guild = interaction.guild
         assert guild is not None
 
         if selected == "leveling":
@@ -82,7 +94,7 @@ class ConfigSelect(disnake.ui.StringSelect):
                 ephemeral=True,
             )
 
-    async def _refresh_config_embed(self, guild: disnake.Guild) -> None:
+    async def _refresh_config_embed(self, guild: Guild) -> None:
         settings = await self.db.get_guild_settings(guild.id)
         embed = Embed(title=f"{WRENCH_EMOJI} configuration options")
         if settings.leveling == 0:
@@ -100,14 +112,14 @@ class ConfigSelect(disnake.ui.StringSelect):
         await self.config_inter.edit_original_message(embed=embed)
 
 
-class WelcomeChannelView(disnake.ui.View):
+class WelcomeChannelView(ui.View):
     def __init__(
         self,
         db: Database,
         bot: Megaton,
-        guild: disnake.Guild,
+        guild: Guild,
         author_id: int,
-        config_inter: disnake.Interaction,
+        config_inter: GuildCommandInteraction,
     ):
         super().__init__()
         self.db = db
@@ -116,7 +128,7 @@ class WelcomeChannelView(disnake.ui.View):
         self.author_id = author_id
         self.config_inter = config_inter
 
-    async def interaction_check(self, interaction: disnake.MessageInteraction) -> bool:
+    async def interaction_check(self, interaction: MessageInteraction) -> bool:
         if interaction.author.id != self.author_id:
             await interaction.response.send_message(
                 "you are not allowed to interact with this menu", ephemeral=True
@@ -124,7 +136,7 @@ class WelcomeChannelView(disnake.ui.View):
             return False
         return True
 
-    async def _refresh_config_embed(self, guild: disnake.Guild) -> None:
+    async def _refresh_config_embed(self, guild: Guild) -> None:
         settings = await self.db.get_guild_settings(guild.id)
         embed = Embed(title=f"{WRENCH_EMOJI} configuration options")
         if settings.leveling == 0:
@@ -141,18 +153,18 @@ class WelcomeChannelView(disnake.ui.View):
             embed.add_field(name=f"{WELCOME_EMOJI} welcome messages", value=CROSS_EMOJI)
         await self.config_inter.edit_original_message(embed=embed)
 
-    @disnake.ui.channel_select(
+    @ui.channel_select(
         custom_id="welcome_channel_select",
         placeholder="select your welcome channel",
-        channel_types=[disnake.ChannelType.text],
+        channel_types=[ChannelType.text],
         max_values=1,
     )
     async def welcome_channel_select(
-        self, select: disnake.ui.ChannelSelect, interaction: disnake.MessageInteraction
+        self, select: ui.ChannelSelect, interaction: MessageInteraction
     ):
         channel = select.values[0]
-        assert isinstance(channel, disnake.TextChannel)
-        guild: Optional[disnake.Guild] = interaction.guild
+        assert isinstance(channel, TextChannel)
+        guild = interaction.guild
         assert guild is not None
         guild_settings = await self.db.get_guild_settings(guild.id)
         await guild_settings.update_welcoming_channel(channel.id)
@@ -165,15 +177,13 @@ class WelcomeChannelView(disnake.ui.View):
         self.stop()
         await self._refresh_config_embed(guild)
 
-    @disnake.ui.button(
+    @ui.button(
         label="disable",
         emoji=CROSS_EMOJI,
         custom_id="welcome_disable",
     )
-    async def disable_button(
-        self, _button: disnake.ui.Button, interaction: disnake.MessageInteraction
-    ):
-        guild: Optional[disnake.Guild] = interaction.guild
+    async def disable_button(self, _button: ui.Button, interaction: MessageInteraction):
+        guild = interaction.guild
         assert guild is not None
         guild_settings = await self.db.get_guild_settings(guild.id)
         await guild_settings.update_welcoming_channel(0)
@@ -187,14 +197,14 @@ class WelcomeChannelView(disnake.ui.View):
         await self._refresh_config_embed(guild)
 
 
-class ConfigView(disnake.ui.View):
+class ConfigView(ui.View):
     def __init__(
         self,
         author_id: int,
         db: Database,
         bot: Megaton,
-        guild: disnake.Guild,
-        config_inter: disnake.Interaction,
+        guild: Guild,
+        config_inter: GuildCommandInteraction,
     ):
         super().__init__()
         self.author_id = author_id
@@ -203,7 +213,7 @@ class ConfigView(disnake.ui.View):
         self.guild = guild
         self.add_item(ConfigSelect(db, bot, config_inter))
 
-    async def interaction_check(self, interaction: disnake.MessageInteraction) -> bool:
+    async def interaction_check(self, interaction: MessageInteraction) -> bool:
         if interaction.author.id != self.author_id:
             await interaction.response.send_message(
                 "you are not allowed to interact with this menu", ephemeral=True
@@ -223,8 +233,8 @@ class Config(commands.Cog):
         description="edit the bot's configuration for this server",
     )
     @commands.has_permissions(manage_guild=True)
-    async def config(self, inter: disnake.ApplicationCommandInteraction):
-        guild: Optional[disnake.Guild] = inter.guild
+    async def config(self, inter: GuildCommandInteraction):
+        guild = inter.guild
         assert guild is not None
 
         settings = await self.db.get_guild_settings(guild.id)
@@ -255,5 +265,5 @@ class Config(commands.Cog):
         await inter.send(embed=embed, view=view, ephemeral=True)
 
 
-def setup(bot):
+def setup(bot: Megaton):
     bot.add_cog(Config(bot))
