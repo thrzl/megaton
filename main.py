@@ -4,11 +4,9 @@ from disnake import Message
 from dotenv import load_dotenv
 
 from src.bot import Megaton
-from src.db import Database
 from src.utils.check_env import check_env
 from src.utils.log import log
 
-from asyncio import run as asyncio_run
 
 load_dotenv()
 check_env()
@@ -60,28 +58,4 @@ async def on_message(message: Message):
     return
 
 
-async def main():
-    client.db = await Database.create(environ["DB_PATH"])
-    ENABLED_COGS = (
-        "Config",
-        "Welcome",
-        # "Moderation",
-        "Bot_Owner",
-        # "Help",
-        # "Economy",
-        # "Fun",
-        "Utility",
-        # "Music",
-        # "Level",
-        "Error",
-        "Bot_Info",
-    )
-    for cog in ENABLED_COGS:
-        try:
-            client.load_extension(f"src.cogs.{cog}")
-        except Exception as e:
-            log.error(f"failed to load extension: {e}")
-    await client.start(client.token)
-
-
-asyncio_run(main())
+client.run()

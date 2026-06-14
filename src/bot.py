@@ -1,6 +1,7 @@
-from asyncio import sleep
+from asyncio import sleep, get_event_loop
 from datetime import datetime, timedelta
 from enum import Enum
+from os import environ
 from typing import Optional, override, Any
 
 from disnake import Activity, ActivityType, Intents, Member
@@ -10,6 +11,21 @@ from disnake.types.embed import Embed as EmbedData
 from humanize import intword
 from src.db import Database
 from src.utils.log import log
+
+ENABLED_COGS = (
+    "Config",
+    "Welcome",
+    # "Moderation",
+    "Bot_Owner",
+    # "Help",
+    # "Economy",
+    # "Fun",
+    "Utility",
+    # "Music",
+    # "Level",
+    "Error",
+    "Bot_Info",
+)
 
 
 class FalseVaccum(Exception):
@@ -84,12 +100,22 @@ class Megaton(InteractionBot):
             intents.message_content = True
         self.token = token
         self.Embed = Embed
-        self.loop.create_task(self.ch_pr())
         self.db = None
 
     @override
-    def run(self):
+    def run(self) -> None:
+        loop = get_event_loop()
+        loop.run_until_complete(self._async_setup())
         super().run(self.token)
+
+    async def _async_setup(self) -> None:
+        self.db = await Database.create(environ["DB_PATH"])
+        for cog in ENABLED_COGS:
+            try:
+                self.load_extension(f"src.cogs.{cog}")
+            except Exception as e:
+                log.error(f"failed to load extension: {e}")
+        self.loop.create_task(self.ch_pr())
 
     def calculate_time(self, time: str):
         td = {"d": 86400, "h": 3600, "m": 60, "s": 1}
