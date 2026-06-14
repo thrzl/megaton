@@ -8,6 +8,8 @@ from src.db import Database
 from src.utils.check_env import check_env
 from src.utils.log import log
 
+from asyncio import run as asyncio_run
+
 load_dotenv()
 check_env()
 
@@ -80,3 +82,6 @@ async def main():
         except Exception as e:
             log.error(f"failed to load extension: {e}")
     await client.start(client.token)
+
+
+asyncio_run(main())
