@@ -1,4 +1,4 @@
-FROM ghcr.io/astral-sh/uv:alpine
+FROM ghcr.io/astral-sh/uv:alpine AS builder
 
 WORKDIR /app
 
@@ -13,6 +13,7 @@ RUN --mount=type=cache,id=s/cdd02d9d-ce3d-4a12-8f17-5ed30b62c514-/root/.cache/uv
 
 ENV PATH="/app/.venv/bin:$PATH"
 
+FROM builder AS runner
 COPY . /app
 RUN --mount=type=cache,id=s/cdd02d9d-ce3d-4a12-8f17-5ed30b62c514-/root/.cache/uv,target=/root/.cache/uv \
     uv sync --locked
