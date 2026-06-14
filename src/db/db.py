@@ -79,7 +79,7 @@ class Database:
             guild_settings = await self.get_guild_settings(guild_id)
             if guild_settings.leveling == 0:
                 return None
-            new_row = LevelData(_db=self, user_id=user_id, guild_id=guild_id, xp=0)
+            new_row = LevelData(_db=self, user_id=user_id, guild_id=guild_id, _xp=0)
             await self.client.execute(
                 "INSERT INTO level_data (user_id, guild_id, xp) VALUES (?, ?, ?)",
                 (new_row.user_id, new_row.guild_id, new_row.xp),
@@ -87,7 +87,7 @@ class Database:
             await self.client.commit()
             return new_row
 
-        return LevelData(_db=self, user_id=row[0], guild_id=row[1], xp=row[2])
+        return LevelData(_db=self, user_id=row[0], guild_id=row[1], _xp=row[2])
 
 
 class DatabaseModel(Struct):

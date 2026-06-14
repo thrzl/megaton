@@ -22,7 +22,7 @@ ENABLED_COGS = (
     # "Fun",
     "Utility",
     # "Music",
-    # "Level",
+    "Level",
     "Error",
     "Bot_Info",
 )
