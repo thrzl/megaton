@@ -1,18 +1,15 @@
 import asyncio
-import json
-import os
 import random
-from ast import Bytes
-from datetime import date, datetime, timedelta
+from datetime import datetime
 from io import BytesIO
+from typing import Any
 
-import aiohttp
-from aiohttp import *
+from aiohttp import ClientSession
 from cachetools import LRUCache
 from disnake import Asset, Color, Member, PartialEmoji
+from disnake.interactions import GuildCommandInteraction
 from disnake.ext import commands
 from disnake.ext.commands import slash_command
-from disnake.ext.commands.slash_core import ApplicationCommandInteraction
 from modern_colorthief import get_color
 
 from src.bot import Embed, Megaton
@@ -22,7 +19,7 @@ from src.utils.data import Error
 class Utility(commands.Cog):
     def __init__(self, bot: Megaton):
         self.bot = bot
-        self.pokemon_cache = LRUCache(maxsize=1024)
+        self.pokemon_cache: LRUCache[str, Any] = LRUCache(maxsize=1024)
 
     @slash_command(
         name="translate",
@@ -30,9 +27,9 @@ class Utility(commands.Cog):
         usage="translate <text>",
         aliases=["tr"],
     )
-    async def translate(self, ctx: ApplicationCommandInteraction, *, message):
+    async def translate(self, ctx: GuildCommandInteraction, *, message):
         await ctx.response.defer()
-        async with aiohttp.ClientSession() as session:
+        async with ClientSession() as session:
             response = await session.get(f"https://bruhapi.xyz/translate/{message}")
             rej = await response.json()
             text = rej["text"]
@@ -49,7 +46,7 @@ class Utility(commands.Cog):
         aliases=["guild"],
         usage="invite",
     )
-    async def server(self, ctx: ApplicationCommandInteraction):
+    async def server(self, ctx: GuildCommandInteraction):
         if not ctx.guild:
             return
         tcount = len(ctx.guild.text_channels)
@@ -57,8 +54,8 @@ class Utility(commands.Cog):
         rcount = len(ctx.guild.roles)
         embed = Embed().set_author(name=ctx.guild.name)
         if (guild_icon := ctx.guild.icon) is not None:
-            red, green, blue = get_color(BytesIO(await guild_icon.read()))
-            embed.color = Color.from_rgb(red, green, blue)
+            color = Color.from_rgb(*get_color(BytesIO(await guild_icon.read())))
+            embed.color = color.value
         embed.set_thumbnail(url=ctx.guild.icon)
         embed.add_field(name="Owner", value=ctx.guild.owner, inline=True)
         embed.add_field(name="Server ID", value=ctx.guild.id, inline=True)
@@ -80,169 +77,155 @@ class Utility(commands.Cog):
         )
         await ctx.send(embed=embed)
 
-    @slash_command(
-        name="suggest",
-        description="Report a bug or make a suggestion to the developers.",
-        aliases=["suggestion", "bugreport", "bug"],
-        usage="suggest <suggestion>",
-    )
-    async def suggest(self, ctx: ApplicationCommandInteraction, *, suggestion="0"):
-        if suggestion == "0":
-            embed = Embed(
-                title="Suggestion", description="What do you want to suggest?"
-            )
-            embed.set_footer(
-                text=f"Requested by {ctx.author.name}", icon_url=ctx.author.avatar.url
-            )
-            sug = await ctx.send(embed=embed)
+    # @slash_command(
+    #     name="suggest",
+    #     description="Report a bug or make a suggestion to the developers.",
+    #     aliases=["suggestion", "bugreport", "bug"],
+    #     usage="suggest <suggestion>",
+    # )
+    # async def suggest(self, ctx: GuildCommandInteraction, *, suggestion: str):
+    #     embed = Embed(title="New Suggestion", description=suggestion)
+    #     embed.set_author(name=ctx.author, icon_url=ctx.author.avatar.url)
+    #     suggestchannel = await self.bot.fetch_channel(779112252833792081)
+    #     await suggestchannel.send(embed=embed)
 
-            def check(m):
-                return m.author == ctx.author and m.channel == ctx.channel
+    # @slash_command(
+    #     name="giveaway",
+    #     description="Starts a giveaway in the current channel.",
+    #     case_insensitive=True,
+    #     aliases=["gws"],
+    # )
+    # @commands.has_guild_permissions(administrator=True)
+    # async def gstart(self, ctx: GuildCommandInteraction, time="none", *, prize="none"):
+    #     # TODO: make this use a modal
+    #     if time == "none":
+    #         embed = Embed(
+    #             title="Giveaway Setup 🎉",
+    #             description="How long should the giveaway last?",
+    #             color=ctx.author.color.value,
+    #         )
+    #         embed.set_footer(text="Use values like 7d, 10m, 30s, or 1h.")
+    #         await ctx.send(embed=embed)
 
-            suggestion = await self.bot.wait_for("message", check=check)
-            await sug.add_reaction("📨")
-        else:
-            await ctx.message.add_reaction("📨")
-        embed = Embed(title="New Suggestion", description=suggestion)
-        embed.set_author(name=ctx.author, icon_url=ctx.author.avatar.url)
-        suggestchannel = await self.bot.fetch_channel(779112252833792081)
-        await suggestchannel.send(embed=embed)
+    #         def check(m):
+    #             return m.channel == ctx.channel and m.author == ctx.author
 
-    @slash_command(
-        name="giveaway",
-        description="Starts a giveaway in the current channel.",
-        case_insensitive=True,
-        aliases=["gws"],
-    )
-    @commands.has_guild_permissions(administrator=True)
-    async def gstart(
-        self, ctx: ApplicationCommandInteraction, time="none", *, prize="none"
-    ):
-        if time == "none":
-            embed = Embed(
-                title="Giveaway Setup 🎉",
-                description="How long should the giveaway last?",
-                color=ctx.author.color,
-            )
-            embed.set_footer(text="Use values like 7d, 10m, 30s, or 1h.")
-            msg = await ctx.send(embed=embed)
+    #         try:
+    #             m = await self.bot.wait_for("message", timeout=60.0, check=check)
+    #         except asyncio.TimeoutError:
+    #             await ctx.send("You didn't answer in time!")
+    #         else:
+    #             time = m.content
 
-            def check(m):
-                return m.channel == ctx.channel and m.author == ctx.author
+    #             await m.delete()
+    #             embed = Embed(
+    #                 title="Giveaway Setup 🎉", description="What's the giveaway prize?"
+    #             )
+    #             await ctx.edit_original_response(embed=embed)
 
-            try:
-                m = await self.bot.wait_for("message", timeout=60.0, check=check)
-            except asyncio.TimeoutError:
-                await ctx.send("You didn't answer in time!")
-            else:
-                time = m.content
+    #             try:
+    #                 m2 = await self.bot.wait_for(
+    #                     "message",
+    #                     timeout=60.0,
+    #                     check=lambda m: (
+    #                         m.channel == ctx.channel and m.author == ctx.author
+    #                     ),
+    #                 )
+    #             except asyncio.TimeoutError:
+    #                 await ctx.send("You didn't answer in time!")
+    #             else:
+    #                 prize = m2.content
 
-                await m.delete()
-                embed = Embed(
-                    title="Giveaway Setup 🎉", description="What's the giveaway prize?"
-                )
-                await msg.edit(embed=embed)
+    #                 await m2.delete()
+    #                 await ctx.delete_original_response()
+    #     elif time != "none" and prize == "none":
+    #         embed = Embed(
+    #             title="Giveaway Setup 🎉",
+    #             description="What's the giveaway prize?",
+    #             color=ctx.author.color.value,
+    #         )
+    #         await ctx.send(embed=embed)
 
-                def check(m):
-                    return m.channel == ctx.channel and m.author == ctx.author
+    #         def check(m):
+    #             return (
+    #                 isinstance(m.content, str)
+    #                 and m.channel == ctx.channel
+    #                 and m.author == ctx.author
+    #             )
 
-                try:
-                    m2 = await self.bot.wait_for("message", timeout=60.0, check=check)
-                except asyncio.TimeoutError:
-                    await ctx.send("You didn't answer in time!")
-                else:
-                    prize = m2.content
-
-                    await m2.delete()
-                    await msg.delete()
-        elif time != "none" and prize == "none":
-            embed = Embed(
-                title="Giveaway Setup 🎉",
-                description="What's the giveaway prize?",
-                color=ctx.author.color,
-            )
-            msg = await ctx.send(embed=embed)
-
-            def check(m):
-                return (
-                    type(m.content) == "str"
-                    and m.channel == ctx.channel
-                    and m.author == ctx.author
-                )
-
-            try:
-                m = await self.bot.wait_for("message", timeout=60.0, check=check)
-            except asyncio.TimeoutError:
-                await ctx.send("You didn't answer in time!")
-            else:
-                prize = m.content
-                await m.delete()
-                await msg.delete()
-        seconds = 0
-        embed1 = Embed(title="🎉New **Giveaway!**", description=prize)
-        if time.lower().endswith("d"):
-            seconds += int(time[:-1]) * 60 * 60 * 24
-            counter = f"{int(time) // 60 // 60 // 24} days"
-            end = datetime.now() + timedelta(days=seconds)
-        if time.lower().endswith("h"):
-            seconds += int(time[:-1]) * 60 * 60
-            counter = f"{int(time) // 60 // 60} hours"
-            end = datetime.now() + timedelta(hours=seconds)
-        elif time.lower().endswith("m"):
-            seconds += int(time[:-1]) * 60
-            counter = f"{int(time) // 60} minutes"
-            end = datetime.now() + timedelta(minutes=seconds)
-        elif time.lower().endswith("s"):
-            seconds += int(time[:-1])
-            counter = f"{time} seconds"
-            end = datetime.now() + timedelta(seconds=seconds)
-        if seconds == 0:
-            embed = Embed(
-                title="Warning",
-                description="Please specify a proper duration. Example: `10d`, `5m`, etc.",
-            )
-        elif seconds > 7776000:
-            embed = Embed(
-                title="Warning",
-                description="You have specified a too long duration!\nMaximum duration is 90 days.",
-            )
-        if seconds != 0 or seconds < 7776000:
-            formatendtime = end.strftime("%H:%M on %B %d, %Y")
-            embed1.add_field(
-                name="Ends at: ", value=f"{formatendtime} UTC", inline=True
-            )
-            embed1.set_footer(text=f"Ends {counter} from now.")
-            gwembed = await ctx.send(embed=embed1)
-            await gwembed.add_reaction("🎉")
-            channel = gwembed.channel
-            await asyncio.sleep(seconds)
-            gwembedmsg = await channel.fetch_message(gwembed.id)
-            users = await gwembedmsg.reactions[0].users().flatten()
-            users.pop(users.index(self.bot.user))
-            today = date.today()
-            todaystr = today.strftime("%B %d, %Y")
-            winner = random.choice(users)
-            embed2 = Embed(
-                title=f"The giveaway for **{prize}** has ended.",
-                description=f"Ended on {todaystr}",
-                color=ctx.author.color,
-            )
-            embed2.set_footer(
-                icon_url=winner.avatar.url, text=f"{winner.name} won this giveaway."
-            )
-            embed = Embed(
-                title="**Giveaway Winner!**",
-                description=f"{winner.mention}, you just won **{prize}** in **{ctx.guild.name}**!",
-                color=winner.color,
-            )
-            await winner.send(embed=embed)
-            await ctx.send(f"Congrats to {winner.mention} for winning {prize}!")
-            await gwembedmsg.edit(embed=embed2)
+    #         try:
+    #             m = await self.bot.wait_for("message", timeout=60.0, check=check)
+    #         except asyncio.TimeoutError:
+    #             await ctx.send("You didn't answer in time!")
+    #         else:
+    #             prize = m.content
+    #             await m.delete()
+    #             await ctx.delete_original_response()
+    #     seconds = 0
+    #     embed1 = Embed(title="🎉New **Giveaway!**", description=prize)
+    #     if time.lower().endswith("d"):
+    #         seconds += int(time[:-1]) * 60 * 60 * 24
+    #         counter = f"{int(time) // 60 // 60 // 24} days"
+    #         end = datetime.now() + timedelta(days=seconds)
+    #     if time.lower().endswith("h"):
+    #         seconds += int(time[:-1]) * 60 * 60
+    #         counter = f"{int(time) // 60 // 60} hours"
+    #         end = datetime.now() + timedelta(hours=seconds)
+    #     elif time.lower().endswith("m"):
+    #         seconds += int(time[:-1]) * 60
+    #         counter = f"{int(time) // 60} minutes"
+    #         end = datetime.now() + timedelta(minutes=seconds)
+    #     elif time.lower().endswith("s"):
+    #         seconds += int(time[:-1])
+    #         counter = f"{time} seconds"
+    #         end = datetime.now() + timedelta(seconds=seconds)
+    #     if seconds == 0:
+    #         embed = Embed(
+    #             title="Warning",
+    #             description="Please specify a proper duration. Example: `10d`, `5m`, etc.",
+    #         )
+    #     elif seconds > 7776000:
+    #         embed = Embed(
+    #             title="Warning",
+    #             description="You have specified a too long duration!\nMaximum duration is 90 days.",
+    #         )
+    #     if seconds != 0 or seconds < 7776000:
+    #         formatendtime = end.strftime("%H:%M on %B %d, %Y")
+    #         embed1.add_field(
+    #             name="Ends at: ", value=f"{formatendtime} UTC", inline=True
+    #         )
+    #         embed1.set_footer(text=f"Ends {counter} from now.")
+    #         gwembed = await ctx.send(embed=embed1)
+    #         await gwembed.add_reaction("🎉")
+    #         channel = gwembed.channel
+    #         await asyncio.sleep(seconds)
+    #         gwembedmsg = await channel.fetch_message(gwembed.id)
+    #         users = await gwembedmsg.reactions[0].users().flatten()
+    #         users.pop(users.index(self.bot.user))
+    #         today = date.today()
+    #         todaystr = today.strftime("%B %d, %Y")
+    #         winner = random.choice(users)
+    #         embed2 = Embed(
+    #             title=f"The giveaway for **{prize}** has ended.",
+    #             description=f"Ended on {todaystr}",
+    #             color=ctx.author.color,
+    #         )
+    #         embed2.set_footer(
+    #             icon_url=winner.avatar.url, text=f"{winner.name} won this giveaway."
+    #         )
+    #         embed = Embed(
+    #             title="**Giveaway Winner!**",
+    #             description=f"{winner.mention}, you just won **{prize}** in **{ctx.guild.name}**!",
+    #             color=winner.color,
+    #         )
+    #         await winner.send(embed=embed)
+    #         await ctx.send(f"Congrats to {winner.mention} for winning {prize}!")
+    #         await gwembedmsg.edit(embed=embed2)
 
     @slash_command(
         name="raw", description="Prints raw text in a codeblock.", usage="raw <text>"
     )
-    async def raw(self, ctx: ApplicationCommandInteraction, *, msg):
+    async def raw(self, ctx: GuildCommandInteraction, *, msg):
         await ctx.send(f"```{msg}```")
 
     @slash_command(
@@ -251,11 +234,11 @@ class Utility(commands.Cog):
         usage="pokemon <pokemon>",
         aliases=["pk", "pdx", "pd", "pokemon"],
     )
-    async def pokemon(self, ctx: ApplicationCommandInteraction, *, pokemon):
+    async def pokemon(self, ctx: GuildCommandInteraction, *, pokemon):
         if pokemon in self.pokemon_cache:
             rj = self.pokemon_cache[pokemon]
         else:
-            async with aiohttp.ClientSession() as session:
+            async with ClientSession() as session:
                 response = await session.get(
                     f"https://some-random-api.com/pokemon/pokedex?pokemon={pokemon}"
                 )
@@ -333,14 +316,16 @@ class Utility(commands.Cog):
         name="remind",
         description="sets a reminder",
     )
-    async def reminder(self, ctx: ApplicationCommandInteraction, time, *, reminder):
+    async def reminder(
+        self, ctx: GuildCommandInteraction, time, *, reminder: str | None
+    ):
         cur_time = datetime.now().strftime("%s")
         embed = Embed(color=0x55A7F7)
         seconds = 0
         if reminder is None:
             embed.set_author(name=random.choice(Error.blurbs))
             embed.description = (
-                "please specify what do you want me to remind you about.",
+                "please specify what do you want me to remind you about."
             )
             return await ctx.send(embed=embed)
         seconds, remindtime = self.bot.calculate_time(time)
@@ -368,35 +353,15 @@ class Utility(commands.Cog):
             return
         await ctx.send(embed=embed)
 
-    @slash_command(name="stats", description="see our stats!", usage="stats")
-    @commands.cooldown(1, 30, commands.BucketType.user)
-    async def stats(self, ctx):
-        async with aiohttp.ClientSession() as session:
-            r = await session.get("https://api.statcord.com/v3/766818911505088514")
-        data = await r.json()
-        pdata = data["data"]
-        for d in pdata:
-            usercount = d["users"]
-            cpu = d["cpuload"]
-        embed = Embed().set_author(
-            name="megaton stats", icon_url=self.bot.user.avatar.url
-        )
-        embed.add_field(name="Server Count", value=len(self.bot.guilds))
-        embed.add_field(name="User Count", value=f"{usercount}")
-        embed.add_field(name="CPU Load", value=f"{cpu}%")
-        embed.set_thumbnail(url=self.bot.user.avatar.url)
-        embed.set_footer(
-            icon_url="https://cdn.statcord.com/logo.png", text=f"Powered by Statcord"
-        )
-        await ctx.send(embed=embed)
-
     @slash_command(
         name="whois",
         description="Returns information about the current user.",
         aliases=["profile", "ui"],
         usage="whois <mention>",
     )
-    async def whois(self, ctx: ApplicationCommandInteraction, *, member: Member = None):
+    async def whois(
+        self, ctx: GuildCommandInteraction, *, member: Member | None = None
+    ):
         m: Member = member or ctx.author
         url: Asset = m.display_avatar
         red, green, blue = get_color(BytesIO(await url.read()))
@@ -414,7 +379,7 @@ class Utility(commands.Cog):
         }
         user_flags = [fs[str(flag).split(".")[1]] for flag in m.public_flags.all()]
         embed = Embed(
-            description=" ".join(user_flags), color=color, preserve_case=True
+            description=" ".join(user_flags), color=color.value, preserve_case=True
         ).set_author(name=m, icon_url=m.display_avatar)
         embed.set_thumbnail(url=m.display_avatar.url)
         joined_date = m.joined_at.date().strftime("%s")
@@ -427,7 +392,8 @@ class Utility(commands.Cog):
         roles.reverse()
         embed.add_field(name="Roles", value=", ".join(roles))
         embed.set_footer(
-            icon_url=ctx.author.avatar.url, text=f"requested by {ctx.author.name}"
+            icon_url=ctx.author.display_avatar.url,
+            text=f"requested by {ctx.author.name}",
         )
         await ctx.send(embed=embed)
 
@@ -437,9 +403,9 @@ class Utility(commands.Cog):
         usage="pip <package>",
         aliases=["pypi", "pypa"],
     )
-    async def pip(self, ctx: ApplicationCommandInteraction, package: str):
+    async def pip(self, ctx: GuildCommandInteraction, package: str):
         datal = ["author", "description", "downloads", "home_page", "name", "summary"]
-        async with aiohttp.ClientSession() as session:
+        async with ClientSession() as session:
             package = package.lower()
             package = package.replace(" ", "-")
             r = await session.get(f"https://pypi.org/pypi/{package}/json")
@@ -471,7 +437,7 @@ class Utility(commands.Cog):
                     url=url,
                 )
                 embed.set_thumbnail(
-                    url="https://pypi.org/static/images/logo-small.95de8436.svg"
+                    url="https://raw.githubusercontent.com/pypi/warehouse/refs/heads/main/warehouse/static/images/logo-small.svg"
                 )
                 embed.set_author(
                     name=f"created by {author}",
@@ -488,9 +454,7 @@ class Utility(commands.Cog):
         description="Steals an emoji from another server!",
         usage=f"emojisteal <emoji> <name>",
     )
-    async def emojisteal(
-        self, ctx: ApplicationCommandInteraction, emoji: PartialEmoji, name
-    ):
+    async def emojisteal(self, ctx: GuildCommandInteraction, emoji: PartialEmoji, name):
         await ctx.response.defer()
         img = await emoji.read()
         em = await ctx.guild.create_custom_emoji(name=name, image=img)
